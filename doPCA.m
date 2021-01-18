@@ -2,7 +2,8 @@
 % author: @serenading Jan 2021
 
 % TODO: manova to see if features separate more for bluelight condition, and pre vs. post stim
-% classify species
+% TODO: manova to see if features separate more for at the species or
+% strains level
 
 clear
 close all
@@ -13,17 +14,17 @@ addpath('../AggScreening/strainsList/')
 %% Set analysis parameters
 extractStamp = '20201218_184325'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
 n_nonFeatVar = 33; % the first n columns of the feature table that do not contain features. =23
-lightCondition = 'bluelight'; % Leave empty '' to use all. 'prestim','bluelight','poststim'
+lightCondition = 'prestim'; % Leave empty '' to use all. 'prestim','bluelight','poststim'
 classVar = {'strain_name'}; 
 
 % Set filering parameters
 strains2keep = {'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'}; 
 strains2drop = {}; % {'VX34','NIC58'} Cell array containing strains to drop from analysis.
 
-feats2keep = {}; % Use all features if left empty. {'Tierpsy_256'} or {'feat1','feat2'}. Cell array containing features to use for analysis. 
+feats2keep = {'Tierpsy_256'}; % Use all features if left empty. {'Tierpsy_256'} or {'feat1','feat2'}. Cell array containing features to use for analysis. 
 feats2drop = {}; % {'path'};
 
-n_subsample = NaN; % number of replicates per strain to include. Set to NaN to include all samples
+n_subsample = 7; % number of replicates per strain to include. Set to NaN to include all samples
 n_skeletons_range = [50 22500]; % n_skeleton range to use for retaining the well. 25fps x 60s/min x 5 min x 3 worms = 22500 skeletons.
 
 removeOutlier = true; % option to remove outlier coefficients from each PC
@@ -57,7 +58,7 @@ n_strains = numel(unique(featureTable.strain_name));
 
 %% Analyze features with PCA
 % pre-process feature matrix for PCA
-[featureMat,~] = preprocessFeatMat(featureMat);
+[featureMat,dropLogInd] = preprocessFeatMat(featureMat);
 n_feats = size(featureMat,2);
 % do pca
 [pc, score, ~, ~, explained] = pca(featureMat);
@@ -181,12 +182,12 @@ set(gca,'fontsize',15)
 % [feat,featInd] = sort(pc(:,1)); % PC1 
 % featureTable.Properties.VariableNames(featInd)'
 
-% % Clustergram
-% rowLabels = featureTable.strain_name;
-% colLabels = featureTable.Properties.VariableNames(1:end-numel(classVar));
-% cgObj = clustergram(featureMat,'RowLabels',rowLabels,'ColumnLabels',colLabels,...
-%     'Colormap',redbluecmap,'ShowDendrogram','on','OptimalLeafOrder',true)
-
+%% Clustergram
+rowLabels = featureTable.strain_name;
+colLabels = featureTable.Properties.VariableNames(1:end-numel(classVar));
+colLabels = colLabels(~dropLogInd);
+cgObj = clustergram(featureMat,'RowLabels',rowLabels,'ColumnLabels',colLabels,...
+    'Colormap',redbluecmap,'ShowDendrogram','on','OptimalLeafOrder',true)
 
 %% Results
 % Good separation at the species level using PC3 witb either PC1 or 2 

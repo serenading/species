@@ -9,6 +9,7 @@
 % add Tierpsy full feature list (abbreviated) first and do away with
 % n_nonFeatVar.
 
+
 clear
 close all
 
@@ -16,12 +17,12 @@ addpath('../AggScreening/')
 addpath('../AggScreening/strainsList/')
 
 %% Specify which variable to classify for
-classVar = 'strain_name'; % 'species_name','strain_name'
+classVar = 'light_condition'; % 'species_name','strain_name','light_condition'
 
 %% Set analysis parameters
-extractStamp = '20201218_184325'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
-n_nonFeatVar = 33; % the first n columns of the feature table that do not contain features. =23
-lightCondition = 'bluelight'; % Leave empty '' to use all. 'prestim','bluelight','poststim'
+extractStamp = '20210112_105808'; % 20201218_184325 for standard feature extraction, 20210112_105808 for size filtered data
+n_nonFeatVar = 33; % the first n columns of the feature table that do not contain features. =33
+lightCondition = ''; % Leave empty '' to use all. 'prestim','bluelight','poststim'
 
 % Set filering parameters
 strains2keep = {'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'}; 
@@ -34,8 +35,8 @@ n_subsample = NaN; % number of replicates per strain to include. Set to NaN to i
 n_skeletons_range = [50 22500]; % n_skeleton range to use for retaining the well. 25fps x 60s/min x 5 min x 3 worms = 22500 skeletons.
 
 % Select which tasks to perform
-performSequentialFeatureSelection = false;
-trainClassifier = true;
+performSequentialFeatureSelection = true;
+trainClassifier = false;
 
 %% Optional parameters
 
@@ -63,21 +64,15 @@ crossVal_k = 5;
 % Load featuresTable and set classification variables according to the task
 featureTable = readtable(['/Users/sding/OneDrive - Imperial College London/species/Results/fullFeaturesTable_' extractStamp '.csv']);
 
-% Get species information to featureTable
-strainnames = featureTable.strain_name;
-speciesnames = repmat({''},size(strainnames));
-elegansLogInd = cellfun(@(x) strcmp(x,'N2'),strainnames) | cellfun(@(x) strcmp(x,'CB4856'),strainnames) | cellfun(@(x) strcmp(x,'MY23'),strainnames);
-briggsaeLogInd = cellfun(@(x) strcmp(x,'QX1410'),strainnames) | cellfun(@(x) strcmp(x,'VX34'),strainnames);
-tropicalisLogInd = cellfun(@(x) strcmp(x,'NIC58'),strainnames) | cellfun(@(x) strcmp(x,'JU1373'),strainnames);
-speciesnames(elegansLogInd) = {'elegans'};
-speciesnames(briggsaeLogInd) = {'briggsae'};
-speciesnames(tropicalisLogInd) = {'tropicalis'};
-
 % Get classLabels
 if strcmp(classVar,'species_name')
-    classLabels = speciesnames;
+    species_names = getSpeciesnames(featureTable); % Get species information to featureTable
+    classLabels = species_names;
 elseif strcmp(classVar,'strain_name')
     classLabels = featureTable.strain_name;
+elseif strcmp(classVar,'light_condition')
+    light_condition = getLightcondition(featureTable);
+    classLabels = light_condition;
 end
 
 % trim down featuresTable to contain only features
@@ -227,20 +222,20 @@ if trainClassifier
 end
 
 %% Results
-% For classifying species, linear discriminant, quadratic SVM, and subspace discriminant ensemble models
+% For classifying species:
+% - linear discriminant, quadratic SVM, and subspace discriminant ensemble models
 % work well (> 90% cross-validation and test accuracies)
-
-% For classifing species, SFS shows 4 features are good for achieving high
+% - SFS shows 4 features are good for achieving high
 % accuracy
 %     {'curvature_midbody_w_forward_abs_50th'                   }
 %     {'d_curvature_mean_hips_w_backward_abs_90th'              }
 %     {'curvature_std_midbody_abs_50th'                         }
 %     {'curvature_std_neck_w_forward_abs_50th'                  }
 
-% For classifying strains, linear discriminant, quadratic SVM, and subspace discriminant ensemble models
+% For classifying strains:
+% - linear discriminant, quadratic SVM, and subspace discriminant ensemble models
 % work well (> 80% cross-validation and test accuracies)
-
-% For classifing strains, SFS shows 8 features are good for achieving high
+% - SFS shows 8 features are good for achieving high
 % accuracy
 %     {'minor_axis_w_forward_10th'                             }
 %     {'curvature_std_neck_w_forward_abs_50th'                 }
@@ -250,3 +245,13 @@ end
 %     {'d_curvature_mean_midbody_abs_90th'                     }
 %     {'minor_axis_10th'                                       }
 %     {'rel_to_neck_radial_vel_head_tip_w_forward_90th'        }
+
+% For classifying light conditions:
+% - quadratic SVM and ensemble subspace discriminant models give ~50% cross-validation and test accuracies.
+% Accuracies are higher for bluelight than for pre- and post-stim. Other
+% methods ~40-50% cross-validation accuracies. Random guess 33%. 
+% - SFS shows 4 features before accuracy plateaus at 50%
+%     {'path_coverage_head'                                  }
+%     {'ang_vel_head_tip_abs_50th'                           }
+%     {'speed_w_forward_IQR'                                 }
+%     {'ang_vel_head_base_w_forward_abs_50th'                }
