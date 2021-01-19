@@ -67,7 +67,7 @@ species_names = getSpeciesnames(featureTable); % Get species information to feat
 light_condition = getLightcondition(featureTable);
 
 % Filter out poststim videos for light condition classification
-dropLogInd = strcmp(light_condition,'bluelight');
+dropLogInd = strcmp(light_condition,'poststim');
 featureTable = featureTable(~dropLogInd,:);
 light_condition = light_condition(~dropLogInd);
 
@@ -216,6 +216,9 @@ if trainClassifier
         pause
     end
     
+    % For classifying strains,  Ensemble subspace discrimnant and linear discriminant models tend to work the best.
+    % For classifying density, coarse tree model works the best but many models perform very well.
+    
     %% Classification accuracy on unseen hold-out test set
     yfit = trainedModel.predictFcn(testFeatureTable);
     accuracy = nnz(strcmp(yfit,testFeatureTable.(classVar)))/holdoutCVP.TestSize;
@@ -248,7 +251,7 @@ end
 %     {'minor_axis_10th'                                       }
 %     {'rel_to_neck_radial_vel_head_tip_w_forward_90th'        }
 
-% For classifying three light conditions: prestim + bluelight + poststim:
+% For classifying light conditions:
 % - quadratic SVM and ensemble subspace discriminant models give ~50% cross-validation and test accuracies.
 % Accuracies are higher for bluelight than for pre- and post-stim. Other
 % methods ~40-50% cross-validation accuracies. Random guess 33%. 
@@ -257,19 +260,3 @@ end
 %     {'ang_vel_head_tip_abs_50th'                           }
 %     {'speed_w_forward_IQR'                                 }
 %     {'ang_vel_head_base_w_forward_abs_50th'                }
-
-% For classifying two light conditions: prestim + bluelight:
-% - quadratic SVM and ensemble subspace discriminant models give ~65-70% cross-validation and test accuracies.
-% - SFS shows 7 features before accuracy plateaus at 70%
-%     {'path_coverage_head'                                 }
-%     {'speed_w_forward_90th'                               }
-%     {'speed_head_tip_w_forward_10th'                      }
-%     {'path_transit_time_midbody_95th'                     }
-%     {'minor_axis_w_forward_10th'                          }
-%     {'d_ang_vel_midbody_w_backward_abs_IQR'               }
-%     {'d_ang_vel_head_tip_abs_10th'                        }
-% - results seem to suggest some strains are not bluelight sensitive to give very high accuracies between light conditions
-
-% For classifying two light conditions: prestim + poststim:
-% - quadratic SVM and ensemble subspace discriminant models give ~57-60%
-% cross-validation and test accuracies. Random guess gives 50%.

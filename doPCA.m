@@ -6,7 +6,7 @@
 % strains level
 
 clear
-close all
+%close all
 
 addpath('../AggScreening/')
 addpath('../AggScreening/strainsList/')
@@ -14,7 +14,7 @@ addpath('../AggScreening/strainsList/')
 %% Set analysis parameters
 extractStamp = '20201218_184325'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
 n_nonFeatVar = 33; % the first n columns of the feature table that do not contain features. =23
-lightCondition = 'prestim'; % Leave empty '' to use all. 'prestim','bluelight','poststim'
+lightCondition = 'bluelight'; % Leave empty '' to use all. 'prestim','bluelight','poststim'
 classVar = {'strain_name'}; 
 
 % Set filering parameters
@@ -24,7 +24,7 @@ strains2drop = {}; % {'VX34','NIC58'} Cell array containing strains to drop from
 feats2keep = {'Tierpsy_256'}; % Use all features if left empty. {'Tierpsy_256'} or {'feat1','feat2'}. Cell array containing features to use for analysis. 
 feats2drop = {}; % {'path'};
 
-n_subsample = 7; % number of replicates per strain to include. Set to NaN to include all samples
+n_subsample = NaN; % number of replicates per strain to include. Set to NaN to include all samples
 n_skeletons_range = [50 22500]; % n_skeleton range to use for retaining the well. 25fps x 60s/min x 5 min x 3 worms = 22500 skeletons.
 
 removeOutlier = true; % option to remove outlier coefficients from each PC
@@ -190,7 +190,7 @@ cgObj = clustergram(featureMat,'RowLabels',rowLabels,'ColumnLabels',colLabels,..
     'Colormap',redbluecmap,'ShowDendrogram','on','OptimalLeafOrder',true)
 
 %% Results
-% Good separation at the species level using PC3 witb either PC1 or 2 
+% Good separation at the species level using PC3 with either PC1 or 2 
 % elegans and tropicalis separate better from each other than they do from
 % briggsae
 % PC2 seems good at separating reference (*) and divergent (o) strains

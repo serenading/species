@@ -12,10 +12,11 @@ addpath('../AggScreening/')
 
 %% Set parameters
 feats = {'angular_velocity_head_tip','angular_velocity_head_base','speed_midbody'}; %{'path_coverage_head','ang_vel_head_tip_abs_50th','speed_w_forward_IQR','ang_vel_head_base_w_forward_abs_50th'}; % cell array containing feature names as strings.
-strain = 'QX1410'; % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'; 
+strain = 'JU1373'; % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'; 
 n_subsample = 1; % number of replicates per strain to include.
 n_nonFeatVar = 33; % the first n columns of the feature table that do not contain features. =33
-smoothWindow = 25; % window to smooth feature over, in frames (data acquired at 25fps)
+frameRate = 25;
+smoothWindow = frameRate; % window to smooth feature over, in frames (data acquired at 25fps)
 resultsDir = '/Volumes/Ashur DT2/species/Results/';
 
 %% Find files for specified strain
@@ -47,7 +48,7 @@ for fileCtr = 1:numel(n_subsample)
     wellsLogInd_prestim = contains(cellstr(features_prestim.well_name'),well);
     wellsLogInd_bluelight = contains(cellstr(features_bluelight.well_name'),well); 
     wellsLogInd_poststim = contains(cellstr(features_poststim.well_name'),well); 
-    %% plot
+    %% plot features
     featfigure = figure; hold on
     title(['Sample timeseries feature for ' strain])
     % go through each feature (rows of subplot)
