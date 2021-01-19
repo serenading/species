@@ -7,7 +7,7 @@
 # Useful scripts . 
 
 `generateFeatSummary`: First script to run. Combines Tierpsy tables with metadata table to generate a combined *FeatureTable* used for downstream analysis.  
-`doPCA: Script performs PCA analysis, with options to specify which features, which strains, and which light conditions to use.  
+`doPCA`: Script performs PCA analysis, with options to specify which features, which strains, and which light conditions to use.  
 `classifySpecies`: Script uses supervised machine learning algorithms to train classifiers for a specified variable based on extracted Tierpsy features. It also has the option to apply sequantial feature selection to identify top features to use for classification.  
 `plotFeatAcrossights`: Script plots selected timeseries features across the three light conditions.  
 `plotTraj`: Script visualises full frame trajectories from an entire camera view (4x4 wells).  
