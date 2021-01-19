@@ -1,4 +1,4 @@
-%% script performs PCA analysis, with options to specify which features, which strains, and which light conditions to use. 
+%% Script performs PCA analysis, with options to specify which features, which strains, and which light conditions to use. 
 % author: @serenading Jan 2021
 
 % TODO: manova to see if features separate more for bluelight condition, and pre vs. post stim

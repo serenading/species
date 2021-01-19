@@ -45,9 +45,10 @@ for fileCtr = 1:numel(n_subsample)
     features_bluelight = h5read(bluelightfilename,'/timeseries_data');
     features_poststim = h5read(poststimfilename,'/timeseries_data');
     % get logical index for the relevant well 
-    wellsLogInd_prestim = contains(cellstr(features_prestim.well_name'),well);
-    wellsLogInd_bluelight = contains(cellstr(features_bluelight.well_name'),well); 
-    wellsLogInd_poststim = contains(cellstr(features_poststim.well_name'),well); 
+    wellsLogInd_prestim = strcmp(cellstr(features_prestim.well_name'),well);
+    wellsLogInd_bluelight = strcmp(cellstr(features_bluelight.well_name'),well); 
+    wellsLogInd_poststim = strcmp(cellstr(features_poststim.well_name'),well); 
+    
     %% plot features
     featfigure = figure; hold on
     title(['Sample timeseries feature for ' strain])

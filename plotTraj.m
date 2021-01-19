@@ -1,4 +1,4 @@
-%% Script plots full frame trajectories from an entire camera (4x4 wells)
+%% Script visualises full frame trajectories from an entire camera view (4x4 wells).
 % author: @serenading. Jan 2021.
 
 clear
