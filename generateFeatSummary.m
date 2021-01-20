@@ -10,7 +10,7 @@ close all
 % set which feature extraction timestamp to use
 extractStamp = '20210119_073010'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data, 20210119_073010 filtered data with bluelight windows.
 % set project directory
-projectDir = '/Users/sding/OneDrive - Imperial College London/species/';
+projectDir = '/Users/sding/OneDrive - Imperial College London/species';
 
 %% Generate and save featureTable files
 if strcmp(extractStamp,'20210119_073010')
@@ -31,8 +31,8 @@ function [] = generateFeatSummary(extractStamp,resultsDir)
 %% Import features data and combine with metadata
 
 % load features matrix, correspondong filenames, and metadata
-tierpsyFeatureTable = readtable([resultsDir 'features_summary_tierpsy_plate_' extractStamp '.csv'],'Delimiter',',');%,'preserveVariableNames',true);
-tierpsyFileTable = readtable([resultsDir 'filenames_summary_tierpsy_plate_' extractStamp '.csv'],'Delimiter',',','CommentStyle','#');%,'preserveVariableNames',true);
+tierpsyFeatureTable = readtable([resultsDir '/features_summary_tierpsy_plate_' extractStamp '.csv'],'Delimiter',',');%,'preserveVariableNames',true);
+tierpsyFileTable = readtable([resultsDir '/filenames_summary_tierpsy_plate_' extractStamp '.csv'],'Delimiter',',','CommentStyle','#');%,'preserveVariableNames',true);
 metadataTable = readtable(resultsDir '/wells_updated_metadata.csv','Delimiter',',','preserveVariableNames',true);
 
 % rename metadata column heads to match Tierpsy output
