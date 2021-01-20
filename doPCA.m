@@ -6,7 +6,7 @@
 % strains level
 
 clear
-%close all
+close all
 
 addpath('../AggScreening/')
 addpath('../AggScreening/strainsList/')

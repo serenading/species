@@ -11,8 +11,8 @@ addpath('../AggScreening/')
 % confidence interval shading
 
 %% Set parameters
-feats = {'angular_velocity_head_tip','angular_velocity_head_base','speed_midbody'}; %{'path_coverage_head','ang_vel_head_tip_abs_50th','speed_w_forward_IQR','ang_vel_head_base_w_forward_abs_50th'}; % cell array containing feature names as strings.
-strain = 'JU1373'; % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'; 
+feats = {'motion_mode'};%_forward_fraction','motion_mode_paused_fraction','motion_mode_backward_fraction'}; % {'angular_velocity_head_tip','angular_velocity_head_base','speed_midbody'}; % cell array containing feature names as strings.
+strain = 'N2'; % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'; 
 n_subsample = 1; % number of replicates per strain to include.
 n_nonFeatVar = 33; % the first n columns of the feature table that do not contain features. =33
 frameRate = 25;
