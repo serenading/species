@@ -27,7 +27,7 @@ assert(numel(midpointAllwindows) == n_windows)
 % [50:60,65:75,75:85,150:160,165:175,175:185,250:260,265:275,275:285]
 
 %% Go through each strain
-for strainCtr = 1:numel(strains)
+for strainCtr = 2:numel(strains)
     strain = strains{strainCtr};
 
     %% Find file indices (window0) for the specified strain
@@ -40,12 +40,11 @@ for strainCtr = 1:numel(strains)
     % subsample a few files for plotting
     if ~isnan(n_subsample)
         fileInd = datasample(fileInd,n_subsample,'Replace',false);
-    else
-        n_subsample = numel(fileInd);
     end
+    n_sample = numel(fileInd);
 
     %%  Preallocate matrix to hold file indices: n x 9 matrix, each column is one time window (9 windows total)
-    allFileInd = NaN(n_subsample,n_windows); 
+    allFileInd = NaN(n_sample,n_windows); 
     allFileInd(:,1) = fileInd;
     
     %% Get imgstorenames and wellnames for the subsampled files 
@@ -65,7 +64,7 @@ for strainCtr = 1:numel(strains)
         light_condition = getLightcondition(featureTable);
         % get file indices that match the files chosen for window_0, as the
         % indices are not the same across all nine windows
-        for sampleCtr = 1:n_subsample
+        for sampleCtr = 1:n_sample
             fileIdx = find(strcmp(featureTable.filename,imgstorenames{sampleCtr}) &...
                 strcmp(featureTable.well_name,wellnames{sampleCtr}) &...
                 strcmp(light_condition,'bluelight'));
