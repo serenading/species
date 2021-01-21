@@ -32,8 +32,8 @@ poststimfileIdx = find(cellfun(@(x) contains(x,poststim),featureTable.filename) 
     cellfun(@(x) contains(x,cameraname),featureTable.filename) &...
     cellfun(@(x) strcmp(x,well),featureTable.well_name));
 
-% check that only one index is returned for each light condition
-assert(numel(bluelightfileIdx) == 1, ['There should only be one bluelight file index, but ' num2str(numel(bluelightfileIdx)) ' are found.'])
-assert(numel(poststimfileIdx) == 1, ['There should only be one poststim file index, but ' num2str(numel(poststimfileIdx)) ' are found.'])
+% check that no more than one index is returned for each light condition
+assert(numel(bluelightfileIdx) <= 1, ['There should only be one bluelight file index, but ' num2str(numel(bluelightfileIdx)) ' are found.'])
+assert(numel(poststimfileIdx) <= 1, ['There should only be one poststim file index, but ' num2str(numel(poststimfileIdx)) ' are found.'])
 
 end
