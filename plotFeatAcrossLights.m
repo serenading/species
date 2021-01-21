@@ -31,7 +31,7 @@ strainInd = datasample(strainInd,n_subsample,'Replace',false);
 
 %% Go through each file, find matching light condition files, and get timeseries feature
 % go through each file
-for fileCtr = 1:numel(n_subsample)
+for fileCtr = 1:n_subsample
     % get prestim file index
     prestimfileIdx = strainInd(fileCtr);
     % get matching bluelight/poststim file indices
