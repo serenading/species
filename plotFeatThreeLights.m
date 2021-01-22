@@ -8,13 +8,10 @@ close all
 addpath('../AggScreening/')
 addpath('../AggScreening/auxiliary/')
 
-% TODO: find matching indices too slow at the moment. see if there's away to
-% avoid using a loop
-
 %% Set parameters
-extractStamp = '20201218_184325'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
-feats = {'speed_midbody_norm_90th','speed_midbody_norm_50th','speed_midbody_norm_10th'};
-featCollectionName = 'midbody_speed_norm';
+extractStamp = '20210112_105808'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
+feats = {'ang_vel_head_tip_abs_90th','ang_vel_head_tip_abs_50th','ang_vel_head_base_abs_90th','ang_vel_head_base_abs_50th'};
+featCollectionName = 'angular_velocity';
 strains = {'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'}; % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373';
 lightInterval = [0,5*60; 5*60,11*60; 11*60,16*60]; % 5 min prestim, 6 min bluelight, 5 min poststim
 n_subsample = NaN; % number of replicates per strain to sample. Set to NaN to use all files
@@ -32,6 +29,9 @@ light_condition = getLightcondition(featureTable);
 % get species name
 species_names = getSpeciesnames(featureTable);
 
+%% Load saved matching file indices
+load(['matchingFileInd/threelight_' extractStamp '.mat'],'allFileInd');
+
 %% Initialise figure
 figure; hold on % this will be a nx3 plot, with column 1 being elegans, 2 being briggsae, 3 being tropicalis.
 colors = {'m','c','k','r'};
@@ -41,41 +41,20 @@ subplotActualPos = [];
 %% Go through each strain
 for strainCtr = 1:numel(strains)
     
-    %% Get strain name
+    %% Get matching file indices for this strain
     strain = strains{strainCtr};
     disp(['Generating plot for ' strain  ' ...'])
+    strainAllFileInd = allFileInd.(strain);
     
-    %% Find files for specified strain
-    % filter for prestim files for the specified strain
-    fileInd = find(strcmp(featureTable.strain_name,strain) & strcmp(light_condition,'prestim'));
-    % subsample a few files for plotting
+    %% If specified, subsample a few files for plotting
     if ~isnan(n_subsample)
-        fileInd = datasample(fileInd,n_subsample,'Replace',false);
-    end
-    n_sample = numel(fileInd);
-    
-    %%  Preallocate matrix to hold file indices: n x 9 matrix, each column is one time window (9 windows total)
-    allFileInd = NaN(n_sample,n_windows);
-    allFileInd(:,1) = fileInd;
-    
-    %% Go through each file, find matching light condition files, and get timeseries feature
-    % go through each file
-    for sampleCtr = 1:n_sample
-        % get prestim file index
-        prestimfileIdx = allFileInd(sampleCtr,1);
-        % get matching bluelight/poststim file indices
-        [bluelightfileIdx,poststimfileIdx,well] = findMatchingFileInd(prestimfileIdx,featureTable);
-        % recording bluelight/poststim file indices
-        if ~isempty(bluelightfileIdx)
-            allFileInd(sampleCtr,2) = bluelightfileIdx;
-        end
-        if ~isempty(poststimfileIdx)
-            allFileInd(sampleCtr,3) = poststimfileIdx;
-        end
+        allRowInd = 1:size(strainAllFileInd,1);
+        keepRowInd= datasample(allRowInd,n_subsample,'Replace',false);
+        strainAllFileInd = strainAllFileInd(keepRowInd,:);
     end
     
     %% Remove files that have NaN index in any window
-    [trimmedFileInd,n_filesDropped] = dropNaNFiles(allFileInd);
+    [trimmedFileInd,n_filesDropped] = dropNaNFiles(strainAllFileInd);
     
     %% Extract features for the corresponding time windows
     % preallocate
@@ -133,9 +112,6 @@ end
 % link axis for all subplots
 allAxes = findall(0,'type','axes');
 linkaxes(allAxes,'xy')
-% add legend
-subplot(3,3,1)
-legend(horzcat(feats, {'light condition'}) ,'Interpreter','none')
 % add light interval annotations to each subplot
 x = horzcat(lightInterval,fliplr(lightInterval))';
 yL = get(allAxes,'YLim');
@@ -149,5 +125,8 @@ for subplotCtr = 1:numel(subplotActualPos)
     text(midpointAllwindows(2), yL(2)*0.95, 'bluelight','HorizontalAlignment','center')
     text(midpointAllwindows(3), yL(2)*0.95, 'poststim','HorizontalAlignment','center')
 end
+% add legend
+subplot(3,3,1)
+legend(horzcat(feats, {'light condition'}) ,'Interpreter','none')
 % save figure
-savefig([resultsDir '/threelight/' featCollectionName '_allstrains.fig'])
+savefig([resultsDir '/threelight/' featCollectionName '_allstrains_' extractStamp '.fig'])
