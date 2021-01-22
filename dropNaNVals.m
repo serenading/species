@@ -29,5 +29,7 @@ featVals = featVals(rowLogInd,:,:);
 % keep count of the number of files dropped
 n_filesDropped = numel(unique(rows2drop));
 assert(n_filesDropped == size(featValsCopy,1) - size(featVals,1));
+% display message
+disp([num2str(n_filesDropped) ' files dropped due to NaN feature values in at least one of the time windows.'])
 
 end
