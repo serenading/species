@@ -54,9 +54,15 @@ end
 [trimmedFileInd,n_filesDropped] = dropNaNFiles(allFileInd);
 
 %% Extract features for the corresponding time windows
+% prellocate 
 featVals = NaN(size(trimmedFileInd,1),numel(feats),n_windows); 
+
+% extract values
 for windowCtr = 1:n_windows 
     featVals(:,:,windowCtr) = featureTable{trimmedFileInd(:,windowCtr),feats};
 end
+    
+% remove experiments with NaN feature values in any window
+[featVals,n_filesDropped,featValsCopy] = dropNaNVals(featVals);
 
 %% Perform statistical analysis

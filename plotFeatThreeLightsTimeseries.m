@@ -1,10 +1,11 @@
-%% Script plots selected timeseries features across the three light conditions
+%% Script reads featuresN.hdf5 files and plots selected timeseries features across the three light conditions
 % author: @serenading. Jan 2021.
 
 clear
 close all
 
 addpath('../AggScreening/')
+addpath('../AggScreening/auxiliary/')
 
 % TODO: Currently plotting one experimental replicate at a time
 % (n_subsample = 1). Add ways to average across several replicates with
@@ -77,4 +78,3 @@ for fileCtr = 1:n_subsample
         linkaxes([ax1 ax2 ax3],'xy')
     end
 end
-
