@@ -24,5 +24,7 @@ trimmedFileInd = allFileInd(rowLogInd,:,:);
 % keep count of the number of files dropped
 n_filesDropped = numel(unique(rows2drop));
 assert(n_filesDropped == size(allFileInd,1) - size(trimmedFileInd,1));
+% display message
+disp([num2str(n_filesDropped) ' files dropped due to empty features file in at least one of the time windows.'])
 
 end
