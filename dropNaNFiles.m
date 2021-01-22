@@ -13,7 +13,6 @@ function [trimmedFileInd,n_filesDropped] = dropNaNFiles(allFileInd)
 % n_filesDropped: scalar showing how many experiments are dropped 
 
 %% FUNCTION:
-
 % find row index that contains NaN index
 [rows2drop,~] = find(isnan(allFileInd));
 % generate row logical index for rows to keep
@@ -25,6 +24,6 @@ trimmedFileInd = allFileInd(rowLogInd,:,:);
 n_filesDropped = numel(unique(rows2drop));
 assert(n_filesDropped == size(allFileInd,1) - size(trimmedFileInd,1));
 % display message
-disp([num2str(n_filesDropped) ' files dropped due to empty features file in at least one of the time windows.'])
+disp([num2str(n_filesDropped) ' files out of ' num2str(size(allFileInd,1)) ' dropped due to empty features file in at least one of the time windows.'])
 
 end

@@ -1,5 +1,4 @@
-%% Script plots selected features across the three light condition videos.
-% Script creates a 3x3 plot encompassing each strain in a subplot. 
+%% Script plots selected features across the blue light condition videos.
 % author: @serenading. Jan 2021.
 
 clear
@@ -8,28 +7,30 @@ close all
 addpath('../AggScreening/')
 addpath('../AggScreening/auxiliary/')
 
+% TODO: combine script with the three window one.
+
 %% Set parameters
-extractStamp = '20201218_184325'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
-featSetName = 'angular_velocity';
+
+extractStamp = '20210119_073010'; % '20210119_073010' feature summaries have multiple bluelight windows.
+featSetName = 'midbody_speed';
 strains = {'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'}; % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373';
-lightInterval = [0,5*60; 5*60,11*60; 11*60,16*60]; % 5 min prestim, 6 min bluelight, 5 min poststim
 n_subsample = NaN; % number of replicates per strain to sample. Set to NaN to use all files
+bluelightInterval = [60,70; 160,170; 260,270];
+windowDuration = 10; % 10 (default based on Ziwei's time window analysis). Time window in seconds to retain for feature analysis.
+windownames = [0:8]; % windows are named 0 through 8
 resultsDir = '/Users/sding/OneDrive - Imperial College London/species/Results';
 
 %% Get feature extraction windows
-midpointAllwindows = sum(lightInterval,2)/2;
-n_windows = numel(midpointAllwindows);
-
-%% load features table
-featureTable = readtable([resultsDir '/fullFeaturesTable_' extractStamp '.csv']);
-% get light condition
-light_condition = getLightcondition(featureTable);
-% get species name
-species_names = getSpeciesnames(featureTable);
+[midpointAllwindows, prelight, bluelight, postlight] = getBluelightFeatWindows(bluelightInterval,windowDuration);
+n_windows = numel(windownames);
+assert(numel(midpointAllwindows) == n_windows)
+% Enter the resultant windows (in seconds) into Tierpsy feature summariser for feature
+% window extraction (takes about a minute per file on my macpro)
+% [50:60,65:75,75:85,150:160,165:175,175:185,250:260,265:275,275:285]
 
 %% Load saved matching file indices and feature sets
 % load matching file indices across three light conditions
-load(['matchingFileInd/threelight_' extractStamp '.mat'],'allFileInd');
+load(['matchingFileInd/bluelight_' extractStamp '.mat'],'allFileInd');
 % get feature sets
 load('featureSet/features.mat','features');
 feats = features.(featSetName);
@@ -47,14 +48,14 @@ for strainCtr = 1:numel(strains)
     strain = strains{strainCtr};
     disp(['Generating plot for ' strain  ' ...'])
     strainAllFileInd = allFileInd.(strain);
-    
+
     %% If specified, subsample a few files for plotting
     if ~isnan(n_subsample)
         allRowInd = 1:size(strainAllFileInd,1);
         keepRowInd= datasample(allRowInd,n_subsample,'Replace',false);
         strainAllFileInd = strainAllFileInd(keepRowInd,:);
     end
-    
+
     %% Remove files that have NaN index in any window
     [trimmedFileInd,n_filesDropped] = dropNaNFiles(strainAllFileInd);
     
@@ -64,6 +65,9 @@ for strainCtr = 1:numel(strains)
     
     % go through each time window
     for windowCtr = 1:n_windows
+        % load features table
+        window = windownames(windowCtr);
+        featureTable = readtable([resultsDir '/fullFeaturesTable_' extractStamp '_window_' num2str(window) '.csv']);
         % extract feature values
         featVals(:,:,windowCtr) = featureTable{trimmedFileInd(:,windowCtr),feats};
     end
@@ -71,8 +75,9 @@ for strainCtr = 1:numel(strains)
     % remove experiments with NaN feature values in any window
     [featVals,n_filesDropped,featValsCopy] = dropNaNVals(featVals);
     
-    %% Plot features
+     %% Plot features
     % Get species name for strain
+    species_names = getSpeciesnames(featureTable);
     species_name = species_names(trimmedFileInd(1,windowCtr));
     
     % Find subplot location
@@ -105,7 +110,7 @@ for strainCtr = 1:numel(strains)
 
     % Format
     title([strain sprintf('\n') 'n = ' num2str(size(featVals,1))])
-    xlim([min(lightInterval(:)),max(lightInterval(:))])
+    xlim([30 300])
     xlabel('time (s)')
     
 end
@@ -115,20 +120,17 @@ end
 allAxes = findall(0,'type','axes');
 linkaxes(allAxes,'xy')
 % add light interval annotations to each subplot
-x = horzcat(lightInterval,fliplr(lightInterval))';
+x = horzcat(bluelightInterval,fliplr(bluelightInterval))';
 yL = get(allAxes,'YLim');
 yL = yL{1};
 y = [yL(1),yL(1),yL(2),yL(2)]';
 y = horzcat(y,y,y);
 for subplotCtr = 1:numel(subplotActualPos)
     subplot(3,3,subplotActualPos(subplotCtr))
-    patch(x,y,[0 0 0],'EdgeColor','k','FaceAlpha',0)
-    text(midpointAllwindows(1), yL(2)*0.95, 'prestim','HorizontalAlignment','center')
-    text(midpointAllwindows(2), yL(2)*0.95, 'bluelight','HorizontalAlignment','center')
-    text(midpointAllwindows(3), yL(2)*0.95, 'poststim','HorizontalAlignment','center')
+    patch(x,y,'blue','EdgeColor','none','FaceAlpha',0.3)
 end
 % add legend
 subplot(3,3,1)
-legend(horzcat(feats, {'light condition'}) ,'Interpreter','none')
+legend(horzcat(feats, {'bluelight pulse'}) ,'Interpreter','none') 
 % save figure
-savefig([resultsDir '/threelight/' featSetName '_allstrains_' extractStamp '.fig'])
+savefig([resultsDir '/bluelight/' featSetName '_allstrains_' extractStamp '.fig'])

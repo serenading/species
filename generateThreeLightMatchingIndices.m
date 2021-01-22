@@ -1,11 +1,13 @@
 %% Function generates allFileInd variable to hold matching file indices across three light conditions for each strain,
 % so they can be saved and loaded for use later, as this matching step is rather time consuming. 
 
-function allFileInd = generateThreeLightMatchingIndices(extractStamp,strains)
+function allFileInd = generateThreeLightMatchingIndices(extractStamp,strains,resultsDir)
 
 %% INPUTS: 
 % extractStamp: '20201218_184325' for standard feature extraction, '20210112_105808' for filtered data
 % strains: cell array containing strain names as strings. % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373';
+% resultsDir: path leading to the directory where the extracted features
+% summary files are located. 
 
 %% OUTPUT:
 % allFileInd: struct indexable by strain name. allFileInd.strain is a
@@ -16,7 +18,7 @@ function allFileInd = generateThreeLightMatchingIndices(extractStamp,strains)
 %% FUNCTION
 
 %% load features table
-featureTable = readtable(['/Users/sding/OneDrive - Imperial College London/species/Results/fullFeaturesTable_' extractStamp '.csv']);
+featureTable = readtable([resultsDir '/fullFeaturesTable_' extractStamp '.csv']);
 % get light condition
 light_condition = getLightcondition(featureTable);
 
@@ -34,7 +36,7 @@ for strainCtr = 1:numel(strains)
     allFileInd.(strain) = NaN(n_sample,3);
     allFileInd.(strain)(:,1) = fileInd;
     
-     %% Go through each file, find matching light condition files, and get timeseries feature
+     %% Go through each file, find matching light condition files
     % go through each file
     for sampleCtr = 1:n_sample
         % get prestim file index
