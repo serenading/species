@@ -9,9 +9,8 @@ addpath('../AggScreening/')
 addpath('../AggScreening/auxiliary/')
 
 %% Set parameters
-extractStamp = '20210112_105808'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
-feats = {'ang_vel_head_tip_abs_90th','ang_vel_head_tip_abs_50th','ang_vel_head_base_abs_90th','ang_vel_head_base_abs_50th'};
-featCollectionName = 'angular_velocity';
+extractStamp = '20201218_184325'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
+featSetName = 'angular_velocity';
 strains = {'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'}; % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373';
 lightInterval = [0,5*60; 5*60,11*60; 11*60,16*60]; % 5 min prestim, 6 min bluelight, 5 min poststim
 n_subsample = NaN; % number of replicates per strain to sample. Set to NaN to use all files
@@ -29,8 +28,12 @@ light_condition = getLightcondition(featureTable);
 % get species name
 species_names = getSpeciesnames(featureTable);
 
-%% Load saved matching file indices
+%% Load saved matching file indices and feature sets
+% load matching file indices across three light conditions
 load(['matchingFileInd/threelight_' extractStamp '.mat'],'allFileInd');
+% get feature sets
+load('featureSet/features.mat','features');
+feats = features.(featSetName);
 
 %% Initialise figure
 figure; hold on % this will be a nx3 plot, with column 1 being elegans, 2 being briggsae, 3 being tropicalis.
@@ -129,4 +132,4 @@ end
 subplot(3,3,1)
 legend(horzcat(feats, {'light condition'}) ,'Interpreter','none')
 % save figure
-savefig([resultsDir '/threelight/' featCollectionName '_allstrains_' extractStamp '.fig'])
+savefig([resultsDir '/threelight/' featSetName '_allstrains_' extractStamp '.fig'])
