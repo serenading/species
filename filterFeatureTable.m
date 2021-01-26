@@ -1,4 +1,6 @@
-%% Function filters features table by specified strain and feature requirements before classification tasks.
+%% Function filters features table by specified strain and feature requirements before PCA.
+
+function [featureTable, classLabels,filenames] = filterFeatureTable(featureTable,classVar,strains,featSetName)
 
 %% Inputs:
 % featureTable: file-by-feature featureTable
@@ -10,7 +12,7 @@
 % featureTable: file-by-feature featureTable with non-feature metadata variables removed.
 % classLabels: file x 1 class labels to feed into the classification task. If multiple multiple variables are specied for classVar then classLabels is a struct where each field contains the labels for that variable.
 
-function [featureTable, classLabels,filenames] = filterFeatureTable(featureTable,classVar,strains,featSetName)
+%% FUNCTION: 
 
 %% process rows (observations) first
 
