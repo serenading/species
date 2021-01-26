@@ -8,8 +8,8 @@ addpath('../AggScreening/')
 
 %% Set parameters
 strain = 'N2'; % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373';
-light = 'prestim'; % 'prestim', 'bluelight','poststim'. Specify the light condition to plot.
-n_subsample = 3; % Specify how full camera FOV per strain to show.
+light = 'poststim'; % 'prestim', 'bluelight','poststim'. Specify the light condition to plot.
+n_subsample = 2; % Specify how full camera FOV per strain to show.
 resultsDir = '/Volumes/Ashur DT2/species/Results/';
 plotFirstFrame = true;
 frameRate = 25;

@@ -1,4 +1,5 @@
-%% Script reads featuresN.hdf5 files and plots selected timeseries features across the three light conditions
+%% Script reads featuresN.hdf5 files and plots selected timeseries features across the three light conditions 
+% (as opposed to using extracted features values in each light window as in plotFeatThreeLights.m).
 % author: @serenading. Jan 2021.
 
 clear

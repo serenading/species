@@ -10,15 +10,16 @@ addpath('../AggScreening/auxiliary/')
 
 %% Set parameters
 extractStamp = '20201218_184325'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
-featSetName = 'angular_velocity';
+featSetName = 'path_coverage_norm';
 strains = {'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'}; % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373';
+windows = [1,2,3]; % 1 for prestim, 2 for bluelight, 3 for poststim
 lightInterval = [0,5*60; 5*60,11*60; 11*60,16*60]; % 5 min prestim, 6 min bluelight, 5 min poststim
 n_subsample = NaN; % number of replicates per strain to sample. Set to NaN to use all files
 resultsDir = '/Users/sding/OneDrive - Imperial College London/species/Results';
 
 %% Get feature extraction windows
 midpointAllwindows = sum(lightInterval,2)/2;
-n_windows = numel(midpointAllwindows);
+n_windows = numel(windows);
 
 %% load features table
 featureTable = readtable([resultsDir '/fullFeaturesTable_' extractStamp '.csv']);
@@ -65,7 +66,8 @@ for strainCtr = 1:numel(strains)
     % go through each time window
     for windowCtr = 1:n_windows
         % extract feature values
-        featVals(:,:,windowCtr) = featureTable{trimmedFileInd(:,windowCtr),feats};
+        window = windows(windowCtr);
+        featVals(:,:,windowCtr) = featureTable{trimmedFileInd(:,window),feats};
     end
     
     % remove experiments with NaN feature values in any window

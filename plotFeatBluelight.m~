@@ -8,11 +8,12 @@ addpath('../AggScreening/')
 addpath('../AggScreening/auxiliary/')
 
 % TODO: combine script with the three window one.
+% TODO: add dropNaN outputs as a QC script. 
 
 %% Set parameters
 
 extractStamp = '20210119_073010'; % '20210119_073010' feature summaries have multiple bluelight windows.
-featSetName = 'motion_mode';
+featSetName = 'path_coverage';
 strains = {'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'}; % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373';
 n_subsample = NaN; % number of replicates per strain to sample. Set to NaN to use all files
 bluelightInterval = [60,70; 160,170; 260,270];
@@ -36,13 +37,13 @@ load('featureSet/features.mat','features');
 feats = features.(featSetName);
 
 %% Initialise figure
-figure; hold on % this will be a nx3 plot, with column 1 being elegans, 2 being briggsae, 3 being tropicalis.
+figure; hold on % this will be a 3xn plot, with row 1 being elegans, 2 being briggsae, 3 being tropicalis.
 colors = {'m','c','k','r'};
 subplotPos = [1;4;7]; % initialise position for subplot figures. each row is a different species
 subplotActualPos = [];
 
 %% Go through each strain
-for strainCtr = 5;1:numel(strains)
+for strainCtr = 1:numel(strains)
     
     %% Get matching file indices for this strain
     strain = strains{strainCtr};
@@ -76,28 +77,28 @@ for strainCtr = 5;1:numel(strains)
     [featVals,n_filesDropped,featValsCopy] = dropNaNVals(featVals);
     
      %% Plot features
-    % Get species name for strain
+    % Get species name for strain using the currently loaded featureTable
     species_names = getSpeciesnames(featureTable);
-    species_name = species_names(trimmedFileInd(1,1));
+    species_name = species_names(trimmedFileInd(1,windowCtr));
     
     % Find subplot location
     if strcmp(species_name,'elegans')
-        subplotCol = 1;
+        subplotRow = 1;
     elseif strcmp(species_name,'briggsae')
-        subplotCol = 2;
+        subplotRow = 2;
     elseif strcmp(species_name,'tropicalis')
-        subplotCol = 3;
+        subplotRow = 3;
     else
-        subplotCol = NaN;
+        subplotRow = NaN;
         warning(['Invalid species name: ' speciesname])
     end
-    if isscalar(subplotCol)
+    if isscalar(subplotRow)
         % set subplot location
-        ax(strainCtr) = subplot(3,3,subplotPos(subplotCol)); hold on
+        ax(strainCtr) = subplot(3,3,subplotPos(subplotRow)); hold on
         % keep track of actual locations used for adding time window annotations later
-        subplotActualPos = [subplotActualPos,subplotPos(subplotCol)];
+        subplotActualPos = [subplotActualPos,subplotPos(subplotRow)];
         % update location counter
-        subplotPos(subplotCol) = subplotPos(subplotCol)+1;
+        subplotPos(subplotRow) = subplotPos(subplotRow)+1;
     end
         
     % Go through each feature and plot as shaded error bar
@@ -110,7 +111,7 @@ for strainCtr = 5;1:numel(strains)
 
     % Format
     title([strain sprintf('\n') 'n = ' num2str(size(featVals,1))])
-    xlim([30 360])
+    xlim([30 300])
     xlabel('time (s)')
     
 end

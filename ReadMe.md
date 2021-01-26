@@ -7,16 +7,17 @@
 # Useful scripts . 
 
 `generateFeatSummary`: First script to run. Combines Tierpsy tables with metadata table to generate a combined *FeatureTable* used for downstream analysis.  
+`listFeatureSets`: Script specifies useful feature sets for analysis. Re-run script after modifications to update the saved feature set file.
 `doPCA`: Script performs PCA analysis, with options to specify which features, which strains, and which light conditions to use.  
 `classifySpecies`: Script uses supervised machine learning algorithms to train classifiers for a specified variable based on extracted Tierpsy features. It also has the option to apply sequantial feature selection to identify top features to use for classification.  
 `plotFeatAcrossights`: Script plots selected timeseries features across the three light conditions.  
 `plotTraj`: Script visualises full frame trajectories from an entire camera view (4x4 wells).  
-`plotFeatForBluelight`: Script plots selected features across the blue light condition videos.  
+`plotFeatBluelight`: Script plots selected features across the blue light condition videos.  
+`plotFeatThreeLights`: Script plots selected features across the three light condition videos.
+`plotFeatThreeLightsTimeseries`: Script reads featuresN.hdf5 files and plots selected timeseries features across the three light conditions (as opposed to using extracted features values in each light window as in plotFeatThreeLights.m).
+`analyseBluelightSensitivity`: Script analyses bluelight sensitivity by looking at significant feature changes between prestim and bluelight videos.
 
 # Useful functions . 
 
 `findMatchingFileInd`: Function takes prestim file index from featureTable and returns bluelight and poststim file indices, and the well name.  
 `getBluelightFeatWindows`: Function generates 3x2 windows for each of the light condition in seconds based on standard Hydra bluelight stimulation conditions.  
-
-# Under development .  
-`analyseBlueLightSensitivity`: Script analyses bluelight sensitivity by looking at significant feature changes, including motion state.  

@@ -2,16 +2,18 @@
 % author: @serenading. Jan 2021.
 
 clear
-close all
+%close all
 
 addpath('../AggScreening/')
 addpath('../AggScreening/auxiliary/')
 
+% TODO: combine script with the three window one.
+% TODO: add dropNaN outputs as a QC script. 
+
 %% Set parameters
 
 extractStamp = '20210119_073010'; % '20210119_073010' feature summaries have multiple bluelight windows.
-feats = {'ang_vel_head_tip_abs_90th','ang_vel_head_tip_abs_50th','ang_vel_head_base_abs_90th','ang_vel_head_base_abs_50th',};
-featCollectionName = 'angular_speed';
+featSetName = 'path_coverage_norm';
 strains = {'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'}; % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373';
 n_subsample = NaN; % number of replicates per strain to sample. Set to NaN to use all files
 bluelightInterval = [60,70; 160,170; 260,270];
@@ -27,56 +29,36 @@ assert(numel(midpointAllwindows) == n_windows)
 % window extraction (takes about a minute per file on my macpro)
 % [50:60,65:75,75:85,150:160,165:175,175:185,250:260,265:275,275:285]
 
+%% Load saved matching file indices and feature sets
+% load matching file indices across three light conditions
+load(['matchingFileInd/bluelight_' extractStamp '.mat'],'allFileInd');
+% get feature sets
+load('featureSet/features.mat','features');
+feats = features.(featSetName);
+
+%% Initialise figure
+figure; hold on % this will be a 3xn plot, with row 1 being elegans, 2 being briggsae, 3 being tropicalis.
+colors = {'m','c','k','r'};
+subplotPos = [1;4;7]; % initialise position for subplot figures. each row is a different species
+subplotActualPos = [];
+
 %% Go through each strain
 for strainCtr = 1:numel(strains)
+    
+    %% Get matching file indices for this strain
     strain = strains{strainCtr};
+    disp(['Generating plot for ' strain  ' ...'])
+    strainAllFileInd = allFileInd.(strain);
 
-    %% Find file indices (window0) for the specified strain
-    % load features table
-    featureTable = readtable([resultsDir '/fullFeaturesTable_' extractStamp '_window_0.csv']);
-    % get light condition
-    light_condition = getLightcondition(featureTable);
-    % filter for bluelight files for the specified strain
-    fileInd = find(strcmp(featureTable.strain_name,strain) & strcmp(light_condition,'bluelight'));
-    % subsample a few files for plotting
+    %% If specified, subsample a few files for plotting
     if ~isnan(n_subsample)
-        fileInd = datasample(fileInd,n_subsample,'Replace',false);
+        allRowInd = 1:size(strainAllFileInd,1);
+        keepRowInd= datasample(allRowInd,n_subsample,'Replace',false);
+        strainAllFileInd = strainAllFileInd(keepRowInd,:);
     end
-    n_sample = numel(fileInd);
 
-    %%  Preallocate matrix to hold file indices: n x 9 matrix, each column is one time window (9 windows total)
-    allFileInd = NaN(n_sample,n_windows); 
-    allFileInd(:,1) = fileInd;
-    
-    %% Get imgstorenames and wellnames for the subsampled files 
-    % (we will use these and bluelight condition to find the same files
-    % across all nine windows)
-    imgstorenames = featureTable.filename(fileInd);
-    wellnames = featureTable.well_name(fileInd);
-    
-    %% Find matching bluelight files for the subsequent windows 
-    % go through each subsequent window
-    for windowCtr = 2:9 
-        % get window name as output by Tierpsy
-        window = windownames(windowCtr);
-        % load features table for that window
-        featureTable = readtable([resultsDir '/fullFeaturesTable_' extractStamp '_window_' num2str(window) '.csv']);
-        % get light condition
-        light_condition = getLightcondition(featureTable);
-        % get file indices that match the files chosen for window_0, as the
-        % indices are not the same across all nine windows
-        for sampleCtr = 1:n_sample
-            fileIdx = find(strcmp(featureTable.filename,imgstorenames{sampleCtr}) &...
-                strcmp(featureTable.well_name,wellnames{sampleCtr}) &...
-                strcmp(light_condition,'bluelight'));
-            if ~isempty(fileIdx)
-                allFileInd(sampleCtr,windowCtr) = fileIdx;
-            end
-        end
-    end
-    
     %% Remove files that have NaN index in any window
-    [trimmedFileInd,n_filesDropped] = dropNaNFiles(allFileInd);
+    [trimmedFileInd,n_filesDropped] = dropNaNFiles(strainAllFileInd);
     
     %% Extract features for the corresponding time windows
     % preallocate
@@ -94,10 +76,31 @@ for strainCtr = 1:numel(strains)
     % remove experiments with NaN feature values in any window
     [featVals,n_filesDropped,featValsCopy] = dropNaNVals(featVals);
     
-    %% Plot features
-    figure; hold on
-    colors = {'m','c','k','r'};
+     %% Plot features
+    % Get species name for strain using the currently loaded featureTable
+    species_names = getSpeciesnames(featureTable);
+    species_name = species_names(trimmedFileInd(1,windowCtr));
     
+    % Find subplot location
+    if strcmp(species_name,'elegans')
+        subplotRow = 1;
+    elseif strcmp(species_name,'briggsae')
+        subplotRow = 2;
+    elseif strcmp(species_name,'tropicalis')
+        subplotRow = 3;
+    else
+        subplotRow = NaN;
+        warning(['Invalid species name: ' speciesname])
+    end
+    if isscalar(subplotRow)
+        % set subplot location
+        ax(strainCtr) = subplot(3,3,subplotPos(subplotRow)); hold on
+        % keep track of actual locations used for adding time window annotations later
+        subplotActualPos = [subplotActualPos,subplotPos(subplotRow)];
+        % update location counter
+        subplotPos(subplotRow) = subplotPos(subplotRow)+1;
+    end
+        
     % Go through each feature and plot as shaded error bar
     for featCtr = 1:numel(feats)
         feat = feats{featCtr};
@@ -105,20 +108,30 @@ for strainCtr = 1:numel(strains)
         shadedErrorBar(midpointAllwindows,vals,{@nanmean,@(x) nanstd(x)/sqrt(numel(x))},...
             'lineprops',{[colors{featCtr} '-o'],'markerfacecolor',colors{featCtr}},'transparent',1); hold on
     end
-    
-    % Add bluelight interval shading
-    x = horzcat(bluelightInterval,fliplr(bluelightInterval))';
-    yL = horzcat(get(gca,'YLim'));
-    y = [yL(1),yL(1),yL(2),yL(2)]';
-    y = horzcat(y,y,y);
-    patch(x,y,'blue','EdgeColor','none','FaceAlpha',0.3)
-    
+
     % Format
-    legend(horzcat(feats,{'bluelight pulse'}) ,'Interpreter','none')
     title([strain sprintf('\n') 'n = ' num2str(size(featVals,1))])
-    xlim([30 360])
+    xlim([30 300])
     xlabel('time (s)')
     
-    % Save
-    savefig([resultsDir '/bluelight/' featCollectionName '/' strain '.fig'])
 end
+
+%% Format plot
+% link axis for all subplots
+allAxes = findall(0,'type','axes');
+linkaxes(allAxes,'xy')
+% add light interval annotations to each subplot
+x = horzcat(bluelightInterval,fliplr(bluelightInterval))';
+yL = get(allAxes,'YLim');
+yL = yL{1};
+y = [yL(1),yL(1),yL(2),yL(2)]';
+y = horzcat(y,y,y);
+for subplotCtr = 1:numel(subplotActualPos)
+    subplot(3,3,subplotActualPos(subplotCtr))
+    patch(x,y,'blue','EdgeColor','none','FaceAlpha',0.3)
+end
+% add legend
+subplot(3,3,1)
+legend(horzcat(feats,{'bluelight pulse'}) ,'Interpreter','none') 
+% save figure
+savefig([resultsDir '/bluelight/' featSetName '_allstrains_' extractStamp '.fig'])
