@@ -1,17 +1,24 @@
 %% Script performs PCA analysis, with options to specify which features, which strains, and which light conditions to use. 
 % author: @serenading Jan 2021
 
+% TODO: manova to see if features separate more for bluelight condition, and pre vs. post stim
+% TODO: manova to see if features separate more for at the species or
+% strains level
+
 clear
 close all
 
 %% Set analysis parameters
 extractStamp = '20201218_184325'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
+n_nonFeatVar = 33; % the first n columns of the feature table that do not contain features. =23
 lightCondition = 'bluelight'; % Leave empty '' to use all. 'prestim','bluelight','poststim'
 classVar = {'strain_name'}; 
 
 % Set filering parameters
 strains = {'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'}; 
-featSetName = 'Tierpsy_all'; % 'Tierpsy_256' or 'Tierpsy_all'
+
+feats2keep = {'Tierpsy_256'}; % Use all features if left empty. {'Tierpsy_256'} or {'feat1','feat2'}. Cell array containing features to use for analysis. 
+feats2drop = {}; % {'path'};
 
 n_subsample = NaN; % number of replicates per strain to include. Set to NaN to include all samples
 n_skeletons_range = [50 22500]; % n_skeleton range to use for retaining the well. 25fps x 60s/min x 5 min x 3 worms = 22500 skeletons.
@@ -35,8 +42,7 @@ if ~isnan(n_subsample)
     featureTable = subsampleData(featureTable,n_subsample);
 end
 % filter featureTable based on specified strain and features
-[featureTable, classLabels] = filterFeatureTable(featureTable,classVar,strains,featSetName);
-
+[featureTable, classLabels] = filterFeatureTable(featureTable,classVar,n_nonFeatVar,strains,strains2drop,feats2keep,feats2drop);
 % add retained labels to the end of featureTable
 for varCtr = 1:numel(classVar)
     var = classVar{varCtr};
@@ -155,7 +161,7 @@ subplot(1,2,1)
 plot(cumsum(explained),'o','LineWidth',2); 
 xlim([0 200])
 ylim([0 100]); xlabel('Number of PCs'); ylabel('Variance explained (%)');
-if strcmp(featSetName,'Tierpsy_256')
+if strcmp(feats2keep,'Tierpsy_256')
     xlim([0 80])
 end
 %

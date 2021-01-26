@@ -5,6 +5,11 @@
 
 % author: @serenading. Jan 2021.
 
+% TODO: integrate the filterFeatureTable function from agg. repo. Need to
+% add Tierpsy full feature list (abbreviated) first and do away with
+% n_nonFeatVar.
+
+
 clear
 close all
 
@@ -16,11 +21,13 @@ classVar = 'light_condition'; % 'species_name','strain_name','light_condition'
 
 %% Set analysis parameters
 extractStamp = '20210112_105808'; % 20201218_184325 for standard feature extraction, 20210112_105808 for size filtered data
+n_nonFeatVar = 33; % the first n columns of the feature table that do not contain features. =33
 lightCondition = ''; % Leave empty '' to use all. 'prestim','bluelight','poststim'
 
 % Set filering parameters
 strains = {'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'}; 
-featSetName = 'Tierpsy_all'; % 'Tierpsy_256', 'Tierpsy_all'
+featSetName = 'Tierpsy_256'; % 'Tierpsy_256', 'Tierpsy_all'
+feats2keep = {'Tierpsy_256'}; % Use all features if left empty. {'Tierpsy_256'} or {'feat1','feat2'}. Cell array containing features to use for analysis. 
 
 n_subsample = NaN; % number of replicates per strain to include. Set to NaN to include all samples
 n_skeletons_range = [50 22500]; % n_skeleton range to use for retaining the well. 25fps x 60s/min x 5 min x 3 worms = 22500 skeletons.
@@ -35,7 +42,7 @@ trainClassifier = true;
 if performSequentialFeatureSelection
     % Generate additional diagnostic plots for SFS
     plotSFS = true;
-    if strcmp(featSetName,'Tierpsy_all')
+    if isempty(feats2keep)
         % Use top n sorted features with lowest p-values to make sfs run faster.
         % Also if n_feat too high for n_obs then some classifiers do not work.
         % Likely needs tweaking based on input observations.
@@ -58,7 +65,7 @@ species_names = getSpeciesnames(featureTable); % Get species information to feat
 light_condition = getLightcondition(featureTable);
 
 % Filter out poststim videos for light condition classification
-dropLogInd = strcmp(light_condition,'poststim');
+dropLogInd = strcmp(light_condition,'bluelight');
 featureTable = featureTable(~dropLogInd,:);
 light_condition = light_condition(~dropLogInd);
 
@@ -73,23 +80,23 @@ end
 
 % trim down featuresTable to contain only features
 load('featureSet/features.mat','features');
-featNames = features.(featSetName);
-featureTable = featureTable(:,featNames);
+feats = features.(featSetName);
+featureTable = featureTable(:,
 
-% if isempty(feats2keep)
-%     featureTable = featureTable(:,n_nonFeatVar+1:end);
-% elseif strcmp(feats2keep,'Tierpsy_256')
-%     feats2keep = table2cell(readtable('strainsList/Tierpsy_256_short.csv','PreserveVariableNames',true,'ReadVariableNames',false));
-%     featureTable = featureTable(:,feats2keep);
-% else
-%     featureTable = featureTable(:,feats2keep);
-% end
+if isempty(feats2keep)
+    featureTable = featureTable(:,n_nonFeatVar+1:end);
+elseif strcmp(feats2keep,'Tierpsy_256')
+    feats2keep = table2cell(readtable('strainsList/Tierpsy_256_short.csv','PreserveVariableNames',true,'ReadVariableNames',false));
+    featureTable = featureTable(:,feats2keep);
+else
+    featureTable = featureTable(:,feats2keep);
+end
 
 %% Pre-process features matrix and turn back into table
 
 % Split table into matrix and featNames
 featureMat = table2array(featureTable);
-%featNames = featureTable.Properties.VariableNames;
+featNames = featureTable.Properties.VariableNames;
 % Preprocess feature matrix: drop zero standard deviation, NaN's, z-normalise, etc.
 [featureMat,dropLogInd] = preprocessFeatMat(featureMat);
 featNames = featNames(~dropLogInd);
