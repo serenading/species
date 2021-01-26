@@ -2,18 +2,15 @@
 % author: @serenading. Jan 2021.
 
 clear
-%close all
+close all
 
 addpath('../AggScreening/')
 addpath('../AggScreening/auxiliary/')
 
-% TODO: combine script with the three window one.
-% TODO: add dropNaN outputs as a QC script. 
-
 %% Set parameters
 
 extractStamp = '20210119_073010'; % '20210119_073010' feature summaries have multiple bluelight windows.
-featSetName = 'path_coverage_norm';
+featSetName = 'motion_mode_duration';
 strains = {'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'}; % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373';
 n_subsample = NaN; % number of replicates per strain to sample. Set to NaN to use all files
 bluelightInterval = [60,70; 160,170; 260,270];
@@ -58,7 +55,7 @@ for strainCtr = 1:numel(strains)
     end
 
     %% Remove files that have NaN index in any window
-    [trimmedFileInd,n_filesDropped] = dropNaNFiles(strainAllFileInd);
+    [trimmedFileInd,~] = dropNaNFiles(strainAllFileInd);
     
     %% Extract features for the corresponding time windows
     % preallocate
@@ -66,15 +63,14 @@ for strainCtr = 1:numel(strains)
     
     % go through each time window
     for windowCtr = 1:n_windows
-        % load features table
         window = windownames(windowCtr);
-        featureTable = readtable([resultsDir '/fullFeaturesTable_' extractStamp '_window_' num2str(window) '.csv']);
         % extract feature values
+        featureTable = readtable([resultsDir '/fullFeaturesTable_' extractStamp '_window_' num2str(window) '.csv']);
         featVals(:,:,windowCtr) = featureTable{trimmedFileInd(:,windowCtr),feats};
     end
     
     % remove experiments with NaN feature values in any window
-    [featVals,n_filesDropped,featValsCopy] = dropNaNVals(featVals);
+    [featVals,~,~] = dropNaNVals(featVals);
     
      %% Plot features
     % Get species name for strain using the currently loaded featureTable
@@ -110,7 +106,7 @@ for strainCtr = 1:numel(strains)
     end
 
     % Format
-    title([strain sprintf('\n') 'n = ' num2str(size(featVals,1))])
+    title([strain newline 'n = ' num2str(size(featVals,1))])
     xlim([30 300])
     xlabel('time (s)')
     

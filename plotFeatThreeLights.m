@@ -57,7 +57,7 @@ for strainCtr = 1:numel(strains)
     end
     
     %% Remove files that have NaN index in any window
-    [trimmedFileInd,n_filesDropped] = dropNaNFiles(strainAllFileInd);
+    [trimmedFileInd,~] = dropNaNFiles(strainAllFileInd);
     
     %% Extract features for the corresponding time windows
     % preallocate
@@ -71,7 +71,7 @@ for strainCtr = 1:numel(strains)
     end
     
     % remove experiments with NaN feature values in any window
-    [featVals,n_filesDropped,featValsCopy] = dropNaNVals(featVals);
+    [featVals,~,~] = dropNaNVals(featVals);
     
     %% Plot features
     % Get species name for strain
@@ -106,7 +106,7 @@ for strainCtr = 1:numel(strains)
     end
 
     % Format
-    title([strain sprintf('\n') 'n = ' num2str(size(featVals,1))])
+    title([strain newline 'n = ' num2str(size(featVals,1))])
     xlim([min(lightInterval(:)),max(lightInterval(:))])
     xlabel('time (s)')
     

@@ -45,7 +45,7 @@ for strainCtr = 1:numel(strains)
     end
     
     %% Remove files that have NaN index in any window
-    [trimmedFileInd,n_filesDropped] = dropNaNFiles(strainAllFileInd);
+    [trimmedFileInd,~] = dropNaNFiles(strainAllFileInd);
     
     %% Extract features for the corresponding time windows
     % preallocate
@@ -60,7 +60,7 @@ for strainCtr = 1:numel(strains)
     end
     
     % remove experiments with NaN feature values in any window
-    [featVals,n_filesDropped,featValsCopy] = dropNaNVals(featVals);
+    [featVals,~,~] = dropNaNVals(featVals);
     
     %% Perform statistical analysis: t-test correcting for multiple comparisons
     % set alpha for t-test p value

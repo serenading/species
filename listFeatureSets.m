@@ -30,8 +30,14 @@ features.(featSetName) = {'speed_midbody_90th','speed_midbody_50th','speed_midbo
 featSetName = 'midbody_speed_norm';
 features.(featSetName) = {'speed_midbody_norm_90th','speed_midbody_norm_50th','speed_midbody_norm_10th'};
 
-featSetName = 'motion_mode';
+featSetName = 'motion_mode_fraction';
 features.(featSetName) = {'motion_mode_forward_fraction','motion_mode_paused_fraction','motion_mode_backward_fraction'};
+
+featSetName = 'motion_mode_frequency';
+features.(featSetName) = {'motion_mode_forward_frequency','motion_mode_paused_frequency','motion_mode_backward_frequency'};
+
+featSetName = 'motion_mode_duration';
+features.(featSetName) = {'motion_mode_forward_duration_50th','motion_mode_paused_duration_50th','motion_mode_backward_duration_50th'};
 
 featSetName = 'path_coverage';
 features.(featSetName) = {'path_coverage_head','path_coverage_body','path_coverage_midbody','path_coverage_tail'};
@@ -39,4 +45,5 @@ features.(featSetName) = {'path_coverage_head','path_coverage_body','path_covera
 featSetName = 'path_coverage_norm';
 features.(featSetName) = {'path_coverage_head_norm','path_coverage_body_norm','path_coverage_midbody_norm','path_coverage_tail_norm'};
 
+% save
 save('featureSet/features.mat','features');
