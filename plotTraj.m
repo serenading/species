@@ -4,8 +4,6 @@
 clear
 close all
 
-addpath('../AggScreening/')
-
 %% Set parameters
 strain = 'N2'; % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373';
 light = 'poststim'; % 'prestim', 'bluelight','poststim'. Specify the light condition to plot.

@@ -30,13 +30,12 @@ load('featureSet/features.mat','features');
 feats = features.(featSetName);
 
 %% Filter featureTable
-% filter for selected light condition
-lightLogInd = false(size(light_condition));
-for lightCtr = 1:numel(lightConditions)
-    light = lightConditions{lightCtr};
-    lightLogInd(strcmp(light_condition,light)) = true;
-end
+% Filter for selected light condition
+lightLogInd = ismember(light_condition,lightConditions);
 featureTable = featureTable(lightLogInd,:);
+% Filter for strains
+strainLogInd = ismember(featureTable.strain_name,strains);
+featureTable = featureTable(strainLogInd,:);
 % filter out files with too few skeletons
 skelLogInd = featureTable.n_skeletons > n_skeletons_range(1) & featureTable.n_skeletons < n_skeletons_range(2);
 featureTable = featureTable(skelLogInd,:);

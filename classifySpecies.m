@@ -9,18 +9,17 @@ clear
 close all
 
 addpath('../AggScreening/')
-addpath('../AggScreening/strainsList/')
 
 %% Specify which variable to classify for
-classVar = 'light_condition'; % 'species_name','strain_name','light_condition'
+classVar = 'strain_name'; % 'species_name','strain_name','light_condition'
 
 %% Set analysis parameters
 extractStamp = '20210112_105808'; % 20201218_184325 for standard feature extraction, 20210112_105808 for size filtered data
-lightCondition = ''; % Leave empty '' to use all. 'prestim','bluelight','poststim'
 
 % Set filering parameters
 strains = {'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'}; 
-featSetName = 'Tierpsy_all'; % 'Tierpsy_256', 'Tierpsy_all'
+lightConditions = {'prestim','bluelight','poststim'}; % 'prestim','bluelight','poststim'
+featSetName = 'Tierpsy_256'; % 'Tierpsy_256', 'Tierpsy_all'
 
 n_subsample = NaN; % number of replicates per strain to include. Set to NaN to include all samples
 n_skeletons_range = [50 22500]; % n_skeleton range to use for retaining the well. 25fps x 60s/min x 5 min x 3 worms = 22500 skeletons.
@@ -54,47 +53,34 @@ crossVal_k = 5;
 
 % Load featuresTable and set classification variables according to the task
 featureTable = readtable(['/Users/sding/OneDrive - Imperial College London/species/Results/fullFeaturesTable_' extractStamp '.csv']);
-species_names = getSpeciesnames(featureTable); % Get species information to featureTable
+species_name = getSpeciesnames(featureTable); % Get species information to featureTable
+featureTable.species_name = species_name;
 light_condition = getLightcondition(featureTable);
+featureTable.light_condition = light_condition;
+classLabels = featureTable.(classVar);
 
-% Filter out poststim videos for light condition classification
-dropLogInd = strcmp(light_condition,'poststim');
-featureTable = featureTable(~dropLogInd,:);
-light_condition = light_condition(~dropLogInd);
+% Filter for selected light condition
+lightLogInd = ismember(light_condition,lightConditions);
+featureTable = featureTable(lightLogInd,:);
 
-% Get classLabels
-if strcmp(classVar,'species_name')
-    classLabels = species_names;
-elseif strcmp(classVar,'strain_name')
-    classLabels = featureTable.strain_name;
-elseif strcmp(classVar,'light_condition')
-    classLabels = light_condition;
-end
+% Filter for strains
+strainLogInd = ismember(featureTable.strain_name,strains);
+featureTable = featureTable(strainLogInd,:);
 
-% trim down featuresTable to contain only features
+% Trim down featuresTable to contain only features
 load('featureSet/features.mat','features');
-featNames = features.(featSetName);
-featureTable = featureTable(:,featNames);
-
-% if isempty(feats2keep)
-%     featureTable = featureTable(:,n_nonFeatVar+1:end);
-% elseif strcmp(feats2keep,'Tierpsy_256')
-%     feats2keep = table2cell(readtable('strainsList/Tierpsy_256_short.csv','PreserveVariableNames',true,'ReadVariableNames',false));
-%     featureTable = featureTable(:,feats2keep);
-% else
-%     featureTable = featureTable(:,feats2keep);
-% end
+feats = features.(featSetName);
+featureTable = featureTable(:,feats);
 
 %% Pre-process features matrix and turn back into table
 
-% Split table into matrix and featNames
+% Get feature matrix
 featureMat = table2array(featureTable);
-%featNames = featureTable.Properties.VariableNames;
 % Preprocess feature matrix: drop zero standard deviation, NaN's, z-normalise, etc.
 [featureMat,dropLogInd] = preprocessFeatMat(featureMat);
-featNames = featNames(~dropLogInd);
+feats = feats(~dropLogInd);
 % Put the table back together
-featureTable = array2table(featureMat,'VariableNames',featNames);
+featureTable = array2table(featureMat,'VariableNames',feats);
 
 %% Holdout partition to separate training and test set
 

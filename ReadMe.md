@@ -9,8 +9,7 @@
 `generateFeatSummary`: First script to run. Uses *getFeatureTable* function to generate a combined *FeatureTable* used for downstream analysis.  
 `listFeatureSets`: Script specifies useful feature sets for analysis. Re-run script after modifications to update the saved feature set file.  
 `doPCA`: Script performs PCA analysis, with options to specify which features, which strains, and which light conditions to use.  
-`classifySpecies`: Script uses supervised machine learning algorithms to train classifiers for a specified variable based on extracted Tierpsy features. It also has the option to apply sequantial feature selection to identify top features to use for classification.  
-`plotFeatAcrossights`: Script plots selected timeseries features across the three light conditions.  
+`classifySpecies`: Script uses supervised machine learning algorithms to train classifiers for a specified variable based on extracted Tierpsy features. It also has the option to apply sequantial feature selection to identify top features to use for classification.    
 `plotTraj`: Script visualises full frame trajectories from an entire camera view (4x4 wells).  
 `plotFeatBluelight`: Script plots selected features across the blue light condition videos.  
 `plotFeatThreeLights`: Script plots selected features across the three light condition videos.
@@ -23,5 +22,5 @@
 `getMatchingIndicesBlueLight`: Function generates allFileInd variable to hold matching file indices across three light conditions for each strain, so they can be saved and loaded for use later, as this matching step is rather time consuming.  
 `getMatchingIndicesThreeLights`: Function generates allFileInd variable to hold matching file indices across three light conditions for each strain, so they can be saved and loaded for use later, as this matching step is rather time consuming.   
 `filterFeatureTable`: Function filters features table by specified strain and feature requirements before PCA.  
-`findMatchingFileInd`: Function takes prestim file index from featureTable and returns bluelight and poststim file indices, and the well name.  
+`findMatchingFileInd`: Function takes prestim file index from featureTable and returns bluelight and poststim file indices, and the well name. Function is called once per recording.
 `getBluelightFeatWindows`: Function generates 3x2 windows for each of the light condition in seconds based on standard Hydra bluelight stimulation conditions.  
