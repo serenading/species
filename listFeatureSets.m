@@ -45,5 +45,14 @@ features.(featSetName) = {'path_coverage_head','path_coverage_body','path_covera
 featSetName = 'path_coverage_norm';
 features.(featSetName) = {'path_coverage_head_norm','path_coverage_body_norm','path_coverage_midbody_norm','path_coverage_tail_norm'};
 
+featSetName = 'length';
+features.(featSetName) = {'length_90th','length_50th','length_10th','length_IQR'};
+
+featSetName = 'width';
+features.(featSetName) = {'width_midbody_90th','width_midbody_50th','width_head_base_90th','width_head_base_50th'};
+
+featSetName = 'width_norm';
+features.(featSetName) = {'width_midbody_norm_90th','width_midbody_norm_50th'};
+
 % save
 save('featureSet/features.mat','features');
