@@ -4,9 +4,6 @@
 clear
 close all
 
-addpath('../AggScreening/')
-addpath('../AggScreening/auxiliary/')
-
 %% Set parameters
 extractStamp = '20210112_105808'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
 featSetName = 'Tierpsy_all'; % 'Tierpsy_256','Tierpsy_all','motion_mode','midbody_speed','angular_velocity'
@@ -30,7 +27,7 @@ for strainCtr = 1:numel(strains)
     
     %% Get matching file indices for this strain
     strain = strains{strainCtr};
-    disp(['Generating plot for ' strain  ' ...'])
+    disp(strain)
     strainAllFileInd = allFileInd.(strain);
       
     %% Initialise variable for containing results
@@ -79,6 +76,13 @@ for strainCtr = 1:numel(strains)
             sensitiveFeatInd.(strain) = [sensitiveFeatInd.(strain), featCtr];
         end
     end
+end
+
+%% Display results
+for strainCtr = 1:numel(strains)
+    strain = strains{strainCtr};
+    sigPercent = round(sensitiveFeat_n.(strain)/numel(feats)*100);
+    disp([strain ' has ' num2str(sensitiveFeat_n.(strain)) ' features out of ' num2str(numel(feats))  ' (' num2str(sigPercent) '%) that show significant changes upon bluelight stimulation.'])
 end
 
 %% Save results
