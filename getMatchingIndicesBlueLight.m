@@ -64,6 +64,7 @@ for strainCtr = 1:numel(strains)
         end
     end
 
-save(['matchingFileInd/bluelight_'  extractStamp '.mat'],'allFileInd')
+allFileIndWindows = string(windownames);    
+save(['matchingFileInd/bluelight_'  extractStamp '.mat'],'allFileInd','allFileIndWindows')
 
 end

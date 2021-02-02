@@ -21,7 +21,7 @@ resultsDir = '/Users/sding/OneDrive - Imperial College London/species/Results';
 midpointAllwindows = sum(lightInterval,2)/2;
 n_windows = numel(windows);
 
-%% load features table
+%% Load features table
 featureTable = readtable([resultsDir '/fullFeaturesTable_' extractStamp '.csv']);
 % get light condition
 light_condition = getLightcondition(featureTable);
@@ -50,7 +50,7 @@ for strainCtr = 1:numel(strains)
     strainAllFileInd = allFileInd.(strain);
     
     %% If specified, subsample a few files for plotting
-    if ~isnan(n_subsample)
+    if isscalar(n_subsample)
         allRowInd = 1:size(strainAllFileInd,1);
         keepRowInd= datasample(allRowInd,n_subsample,'Replace',false);
         strainAllFileInd = strainAllFileInd(keepRowInd,:);

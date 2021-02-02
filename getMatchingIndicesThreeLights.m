@@ -53,6 +53,7 @@ for strainCtr = 1:numel(strains)
     end
 end
 
+allFileIndWindows = {'prestim','bluelight','poststim'};
 save(['matchingFileInd/threelight_'  extractStamp '.mat'],'allFileInd')
 
 end

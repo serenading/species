@@ -8,15 +8,12 @@ close all
 addpath('../AggScreening/')
 addpath('../AggScreening/auxiliary/')
 
-% TODO: make functions for calculating reversal frequencies etc. from
-% extracted time series data
-
 %% Set parameters
 extractStamp = '20201218_184325'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
-feats = {'speed_midbody','angular_velocity_head_tip','motion_mode'};%_forward_fraction','motion_mode_paused_fraction','motion_mode_backward_fraction'}; % {'angular_velocity_head_tip','angular_velocity_head_base','speed_midbody'}; % cell array containing feature names as strings.
+feats = {'speed_midbody','angular_velocity_head_tip'};%_forward_fraction','motion_mode_paused_fraction','motion_mode_backward_fraction'}; % {'angular_velocity_head_tip','angular_velocity_head_base','speed_midbody'}; % cell array containing feature names as strings.
 lightConditions = {'prestim','bluelight','poststim'}; % {'prestim','bluelight','poststim'}
 strains = {'N2'}; % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373';
-n_subsample = 20; % number of replicates per strain to sample.
+n_subsample = 5; % number of replicates per strain to sample.
 frameRate = 25;
 smoothWindow = 30; % window to smooth feature over, in seconds
 resultsDir = '/Volumes/Ashur DT2/species/Results/';
@@ -50,9 +47,9 @@ for strainCtr = 1:numel(strains)
     end
     
     % Remove files that have NaN index in any window
-    [trimmedFileInd,~] = dropNaNFiles(strainAllFileInd);
+    [trimmedFileInd,~] = dropNaNFiles(strainAllFileInd); 
     
-    %% Go through each feature to pre-allocate variable
+    %% Go through each feature
     for featCtr = 1:numel(feats)
         
         % Get feature name
@@ -60,36 +57,28 @@ for strainCtr = 1:numel(strains)
         
         % Preallocate n-files by n-frames by n-lights variable to hold feature values for this feature
         featVals.(feat) = NaN(size(trimmedFileInd,1),n_frames,numel(lightConditions));
-    end
-    
-    %% Go through each light condition
-    for lightCtr = 1:numel(lightConditions)
         
-        % Get each light condition
-        light = lightConditions{lightCtr};
-        lightColIdx = find(strcmp(allFileIndWindows,light));
-        
-        % Get file indices for this light condition
-        fileInd = trimmedFileInd(:,lightColIdx);
-        
-        %% Go through each file
-        for fileCtr = 1:numel(fileInd)
-            fileIdx = fileInd(fileCtr);
-            disp(['Extracting features from file ' num2str(fileCtr) ' out of ' num2str(numel(fileInd)) ' for ' light ' condition...'])
+        %% Go through each light condition
+        for lightCtr = 1:numel(lightConditions)
             
-            % Get full file name and well number
-            filename = [resultsDir,featureTable.filename{fileIdx},'/metadata_featuresN.hdf5'];
-            well = featureTable.well_name(fileIdx);
+            % Get each light condition
+            light = lightConditions{lightCtr};
+            lightColIdx = find(strcmp(allFileIndWindows,light));
             
-            % Load time series data
-            features = h5read(filename,'/timeseries_data');
-            wellLogInd = strcmp(cellstr(features.well_name'),well);
+            % Get file indices for this light condition
+            fileInd = trimmedFileInd(:,lightColIdx);
             
-            %% Go through each feature
-            for featCtr = 1:numel(feats)
+            %% Go through each file
+            for fileCtr = 1:numel(fileInd)
+                fileIdx = fileInd(fileCtr);
                 
-                % Get feature name
-                feat = feats{featCtr};
+                % Get full file name and well number
+                filename = [resultsDir,featureTable.filename{fileIdx},'/metadata_featuresN.hdf5'];
+                well = featureTable.well_name(fileIdx);
+                
+                % Load time series data
+                features = h5read(filename,'/timeseries_data');
+                wellLogInd = strcmp(cellstr(features.well_name'),well);
                 
                 % Get time series values for this well
                 x = features.timestamp(wellLogInd)+1; % add 1 for adjust for python indexing
@@ -116,7 +105,7 @@ for strainCtr = 1:numel(strains)
     
     %% Plot features
     featfigure = figure; hold on
-    bluelightSubplotPos = [];
+    bluelightPos = [];
     
     % Go through each feature (rows of subplot)
     for featCtr = 1:numel(feats)
@@ -137,13 +126,13 @@ for strainCtr = 1:numel(strains)
             y = smoothdata(y,'movmedian',smoothWindow*frameRate);
             
             % Plot
-            shadedErrorBar(x,y,{@nanmean,@(x) nanstd(x)/sqrt(numel(x))},'lineProps','-k','transparent',1); hold on
+            shadedErrorBar(x,y,{@nanmean,@(x) nanstd(x)/sqrt(numel(x))},'lineProps','-r','transparent',1); hold on
             
             % Format
             title(lightConditions{lightCtr}); xlabel('frames'); ylabel(feat,'Interpreter','none')
             if strcmp(lightConditions{lightCtr},'bluelight')
                 xlim([0 9000])
-                bluelightSubplotPos = [bluelightSubplotPos,subplotPos];
+                bluelightPos = [bluelightPos,subplotPos];
             else
                 xlim([0 7500])
             end
@@ -153,18 +142,15 @@ for strainCtr = 1:numel(strains)
         linkaxes(ax,'y')
         
         % Add bluelight pulse intervals
-        if ~isempty(bluelightSubplotPos)
-            % Set blue light interval frames for blue light patch x
+        if ~isempty(bluelightPos)
+            thisFeatAxes = findall(ax(lightCtr),'type','axes');
             bluelightInterval = [60,70; 160,170; 260,270]*frameRate; % in frames
             x = horzcat(bluelightInterval,fliplr(bluelightInterval))';
-            % Get ylim for linked axes to get blue light patch y
-            thisFeatAxes = findall(ax(lightCtr),'type','axes');
             yL = get(thisFeatAxes,'YLim');
             y = [yL(1),yL(1),yL(2),yL(2)]';
             y = horzcat(y,y,y);
-            % Add blue light patch objects to each of the bluelight subplots
-            for subplotCtr = 1:numel(bluelightSubplotPos)
-                subplot(numel(feats), numel(lightConditions),bluelightSubplotPos(subplotCtr)); hold on
+            for subplotCtr = 1:numel(bluelightPos)
+                subplot(numel(feats), numel(lightConditions),bluelightPos(subplotCtr)); hold on
                 patch(x,y,'blue','EdgeColor','none','FaceAlpha',0.3)
             end
         end

@@ -48,7 +48,7 @@ for strainCtr = 1:numel(strains)
     strainAllFileInd = allFileInd.(strain);
 
     % If specified, subsample a few files for plotting
-    if ~isnan(n_subsample)
+    if isscalar(n_subsample)
         allRowInd = 1:size(strainAllFileInd,1);
         keepRowInd= datasample(allRowInd,n_subsample,'Replace',false);
         strainAllFileInd = strainAllFileInd(keepRowInd,:);

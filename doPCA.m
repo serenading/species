@@ -1,4 +1,6 @@
 %% Script performs PCA analysis, with options to specify which features, which strains, and which light conditions to use. 
+% Script generates individual plots for each strain and combined plots for
+% all strains, light conditions, experimental dates, and plate batches. 
 % author: @serenading Jan 2021
 
 clear
@@ -7,7 +9,7 @@ close all
 %% Set analysis parameters
 extractStamp = '20201218_184325'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
 lightConditions = {'prestim','bluelight','poststim'}; % 'prestim','bluelight','poststim'
-classVar = {'strain_name','light_condition'}; 
+classVar = {'strain_name','light_condition','date_yyyymmdd','date_plates_poured_yyyymmdd'}; % variable names to retain for plotting
 
 % Set filering parameters
 strains = {'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'}; 
@@ -40,7 +42,7 @@ featureTable = featureTable(strainLogInd,:);
 skelLogInd = featureTable.n_skeletons > n_skeletons_range(1) & featureTable.n_skeletons < n_skeletons_range(2);
 featureTable = featureTable(skelLogInd,:);
 % subsample data if specified
-if ~isnan(n_subsample)
+if isscalar(n_subsample)
     featureTable = subsampleData(featureTable,n_subsample);
 end
 % filter featureTable based on specified strain and features
@@ -75,8 +77,6 @@ if removeOutlier
         disp([num2str(nnz(outlierLogInd)) ' outliers removed from PC ' num2str(PCCtr)])
     end
 end
-
-
 
 %% Get strain logical index (range of n per strain: [222 414])
 N2LogInd = strcmp(featureTable.strain_name,'N2');
@@ -159,6 +159,34 @@ legend(strains)
 title(['PCA plot with ' num2str(n_strains) ' strains and ' num2str(n_feats) ' features'])
 set(gca,'fontsize',15)
 
+%% Get logical index for each strain 
+strainLogInd = false(numel(featureTable.strain_name),numel(strains));
+for strainCtr = 1:numel(strains)
+    strain = strains{strainCtr};
+    strainLogInd(:,strainCtr) = strcmp(featureTable.strain_name,strain);
+end
+
+%% 3D plot of the first three PCs showing one strain at a time
+%
+for strainCtr = 1:numel(strains)
+    strain = strains{strainCtr};
+    figure;
+    % plot the strain of interest in red
+    scatter3(score(strainLogInd(:,strainCtr),1),score(strainLogInd(:,strainCtr),2),score(strainLogInd(:,strainCtr),3),...
+        7,'red','filled')
+    hold on
+    % plot the rest of the strains in gray
+    scatter3(score(~strainLogInd(:,strainCtr),1),score(~strainLogInd(:,strainCtr),2),score(~strainLogInd(:,strainCtr),3),...
+        7,[0.7,0.7,0.7],'filled')
+    xlabel(['PC1 (' num2str(round(explained(1))) ')%'])
+    ylabel(['PC2 (' num2str(round(explained(2))) ')%'])
+    zlabel(['PC3 (' num2str(round(explained(3))) ')%'])
+    %
+    legend(strain)
+    title(['PCA plot with ' num2str(n_feats) ' features'])
+    set(gca,'fontsize',15)
+end
+
 %% Get logical index for each light condition 
 lightLogInd = false(numel(featureTable.light_condition),numel(lightConditions));
 for lightCtr = 1:numel(lightConditions)
@@ -187,6 +215,67 @@ if numel(lightConditions)>1
     set(gca,'fontsize',15)
 end
 
+%% Get logical index for each experimental date
+featureTable.date_yyyymmdd = string(featureTable.date_yyyymmdd); % turn date class into string
+dates = unique(featureTable.date_yyyymmdd);
+dateLogInd = false(numel(featureTable.date_yyyymmdd),numel(dates));
+for dateCtr = 1:numel(dates)
+    date = dates(dateCtr);
+    dateLogInd(:,dateCtr) = strcmp(featureTable.date_yyyymmdd,date);
+end
+
+%% 3D plot of the first three PCs and colour by experimental date
+%
+if numel(dates)>1
+    figure;
+    plotcolors = {'m','c','k'};
+    dateCtr = 1;
+    scatter3(score(dateLogInd(:,dateCtr),1),score(dateLogInd(:,dateCtr),2),score(dateLogInd(:,dateCtr),3),[plotcolors{dateCtr} 'o'],'LineWidth',1)
+    hold on
+    for dateCtr = 2:numel(dates)
+        scatter3(score(dateLogInd(:,dateCtr),1),score(dateLogInd(:,dateCtr),2),score(dateLogInd(:,dateCtr),3),[plotcolors{dateCtr} 'o'],'LineWidth',1)
+    end
+    
+    xlabel(['PC1 (' num2str(round(explained(1))) ')%'])
+    ylabel(['PC2 (' num2str(round(explained(2))) ')%'])
+    zlabel(['PC3 (' num2str(round(explained(3))) ')%'])
+    %
+    legend(dates)
+    title(['PCA plot with ' num2str(numel(dates)) ' experimental dates and ' num2str(n_feats) ' features'])
+    set(gca,'fontsize',15)
+end
+
+%% Get logical index for each plate batch
+featureTable.date_plates_poured_yyyymmdd = string(featureTable.date_plates_poured_yyyymmdd); % turn date class into string
+batches = unique(featureTable.date_plates_poured_yyyymmdd);
+batchLogInd = false(numel(featureTable.date_plates_poured_yyyymmdd),numel(batches));
+for batchCtr = 1:numel(batches)
+    batch = batches(batchCtr);
+    batchLogInd(:,batchCtr) = strcmp(featureTable.date_plates_poured_yyyymmdd,batch);
+end
+
+%% 3D plot of the first three PCs and colour by plate batch
+%
+if numel(batches)>1
+    figure;
+    plotcolors = {'m','c','k'};
+    batchCtr = 1;
+    scatter3(score(batchLogInd(:,batchCtr),1),score(batchLogInd(:,batchCtr),2),score(batchLogInd(:,batchCtr),3),[plotcolors{batchCtr} 'o'],'LineWidth',1)
+    hold on
+    for batchCtr = 2:numel(batches)
+        scatter3(score(batchLogInd(:,batchCtr),1),score(batchLogInd(:,batchCtr),2),score(batchLogInd(:,batchCtr),3),[plotcolors{batchCtr} 'o'],'LineWidth',1)
+    end
+    
+    xlabel(['PC1 (' num2str(round(explained(1))) ')%'])
+    ylabel(['PC2 (' num2str(round(explained(2))) ')%'])
+    zlabel(['PC3 (' num2str(round(explained(3))) ')%'])
+    %
+    legend(batches)
+    title(['PCA plot with ' num2str(numel(batches)) ' plate batches and ' num2str(n_feats) ' features'])
+    set(gca,'fontsize',15)
+end
+
+
 %% Plot variance explained as a function of number of PCs
 %
 figure; hold on
@@ -208,19 +297,21 @@ xlabel('Number of PCs'); ylabel('Additional variance explained (%)');
 %
 set(gca,'fontsize',15)
 
-%% see what's inside the first PC
+%% See what's inside the first PC
 % [feat,featInd] = sort(pc(:,1)); % PC1 
 % featureTable.Properties.VariableNames(featInd)'
 
 %% Clustergram
-rowLabels = featureTable.strain_name;
-colLabels = featureTable.Properties.VariableNames(1:end-numel(classVar));
-colLabels = colLabels(~dropLogInd);
-cgObj = clustergram(featureMat,'RowLabels',rowLabels,'ColumnLabels',colLabels,...
-    'Colormap',redbluecmap,'ShowDendrogram','on','OptimalLeafOrder',true)
+% rowLabels = featureTable.strain_name;
+% colLabels = featureTable.Properties.VariableNames(1:end-numel(classVar));
+% colLabels = colLabels(~dropLogInd);
+% cgObj = clustergram(featureMat,'RowLabels',rowLabels,'ColumnLabels',colLabels,...
+%     'Colormap',redbluecmap,'ShowDendrogram','on','OptimalLeafOrder',true)
 
 %% Results
 % Good separation at the species level using PC3 with either PC1 or 2 
 % elegans and tropicalis separate better from each other than they do from
 % briggsae
 % PC2 seems good at separating reference (*) and divergent (o) strains
+% No clear separation based on light condition or experimental date, but
+% plate batch does seem to have an effect..
