@@ -28,11 +28,6 @@ featureTable = readtable(['/Users/sding/OneDrive - Imperial College London/speci
 %% Load saved matching file indices and feature sets
 % Load matching file indices across three light conditions
 load(['matchingFileInd/threelight_' extractStamp '.mat'],'allFileInd','allFileIndWindows');
-% Get feature sets
-if exist('featSetName','var')
-    load('featureSet/features.mat','features');
-    feats = features.(featSetName);
-end
 
 %% Go through each strain to get file indices
 for strainCtr = 1:numel(strains)
@@ -43,7 +38,7 @@ for strainCtr = 1:numel(strains)
     strainAllFileInd = allFileInd.(strain);
     
     % If specified, subsample a few files for plotting
-    if isscalar(n_subsample)
+    if ~isnan(n_subsample)
         allRowInd = 1:size(strainAllFileInd,1);
         keepRowInd= datasample(allRowInd,n_subsample,'Replace',false);
         strainAllFileInd = strainAllFileInd(keepRowInd,:);

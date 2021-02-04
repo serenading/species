@@ -42,7 +42,7 @@ featureTable = featureTable(strainLogInd,:);
 skelLogInd = featureTable.n_skeletons > n_skeletons_range(1) & featureTable.n_skeletons < n_skeletons_range(2);
 featureTable = featureTable(skelLogInd,:);
 % subsample data if specified
-if isscalar(n_subsample)
+if ~isnan(n_subsample)
     featureTable = subsampleData(featureTable,n_subsample);
 end
 % filter featureTable based on specified strain and features
