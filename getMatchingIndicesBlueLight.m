@@ -1,7 +1,7 @@
 %% Function generates allFileInd variable to hold matching file indices across three light conditions for each strain,
 % so they can be saved and loaded for use later, as this matching step is rather time consuming. 
 
-function allFileInd = generateBlueLightMatchingIndices(extractStamp,strains,windownames,resultsDir)
+function [allFileInd,allFileIndWindows] = getMatchingIndicesBluelight(extractStamp,strains,windownames,resultsDir)
 
 %% INPUTS: 
 % extractStamp: '20210119_073010' feature summaries have multiple bluelight windows.
@@ -65,6 +65,5 @@ for strainCtr = 1:numel(strains)
     end
 
 allFileIndWindows = string(windownames);    
-save(['matchingFileInd/bluelight_'  extractStamp '.mat'],'allFileInd','allFileIndWindows')
 
 end

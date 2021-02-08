@@ -1,7 +1,7 @@
 %% Function generates allFileInd variable to hold matching file indices across three light conditions for each strain,
 % so they can be saved and loaded for use later, as this matching step is rather time consuming. 
 
-function allFileInd = generateThreeLightMatchingIndices(extractStamp,strains,resultsDir)
+function [allFileInd,allFileIndWindows] = getMatchingIndicesThreeLights(extractStamp,strains,resultsDir)
 
 %% INPUTS: 
 % extractStamp: '20201218_184325' for standard feature extraction, '20210112_105808' for filtered data
@@ -54,6 +54,5 @@ for strainCtr = 1:numel(strains)
 end
 
 allFileIndWindows = {'prestim','bluelight','poststim'};
-save(['matchingFileInd/threelight_'  extractStamp '.mat'],'allFileInd')
 
 end

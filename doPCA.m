@@ -6,10 +6,12 @@
 clear
 close all
 
+addpath('../AggScreening')
+
 %% Set analysis parameters
 extractStamp = '20201218_184325'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
 lightConditions = {'prestim','bluelight','poststim'}; % 'prestim','bluelight','poststim'
-classVar = {'strain_name','light_condition','date_yyyymmdd','date_plates_poured_yyyymmdd'}; % variable names to retain for plotting
+classVar = {'strain_name','light_condition','date_yyyymmdd','date_plates_poured_yyyymmdd','imaging_run','well_name'}; % variable names to retain for plotting
 
 % Set filering parameters
 strains = {'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'}; 
@@ -35,20 +37,29 @@ feats = features.(featSetName);
 % Filter for selected light condition
 lightLogInd = ismember(light_condition,lightConditions);
 featureTable = featureTable(lightLogInd,:);
+
 % Filter for strains
 strainLogInd = ismember(featureTable.strain_name,strains);
 featureTable = featureTable(strainLogInd,:);
+
 % filter out files with too few skeletons
 skelLogInd = featureTable.n_skeletons > n_skeletons_range(1) & featureTable.n_skeletons < n_skeletons_range(2);
 featureTable = featureTable(skelLogInd,:);
+
 % subsample data if specified
 if ~isnan(n_subsample)
     featureTable = subsampleData(featureTable,n_subsample);
 end
-% filter featureTable based on specified strain and features
+
+% % Filter by COPAS incident
+% rowLogInd = contains(featureTable.well_name,'F') | contains(featureTable.well_name,'G') | contains(featureTable.well_name,'H');  
+% focalLogInd = featureTable.date_yyyymmdd == 20201215 & featureTable.imaging_run == 2 & rowLogInd;
+% featureTable = featureTable(~focalLogInd,:);
+
+% Filter featureTable based on specified strain and features
 [featureTable, classLabels] = filterFeatureTable(featureTable,classVar,strains,featSetName);
 
-% add retained labels to the end of featureTable
+% Add retained labels to the end of featureTable
 for varCtr = 1:numel(classVar)
     var = classVar{varCtr};
     featureTable.(var) = classLabels.(var);
@@ -296,6 +307,70 @@ xlim([0 200])
 xlabel('Number of PCs'); ylabel('Additional variance explained (%)');
 %
 set(gca,'fontsize',15)
+
+%% Get logical index for questionable data for visualisation
+
+% bleach incident (p.147): when washing CB4856 for bleaching for 20201202
+% imaging day (rep 2), M9 aparently smelled like bleach
+focalLogInd = strcmp(featureTable.date_yyyymmdd,'20201202') & strcmp(featureTable.strain_name,'CB4856');
+contrastLogInd = ~strcmp(featureTable.date_yyyymmdd,'20201202') & strcmp(featureTable.strain_name,'CB4856');
+grayLogInd = true(size(focalLogInd));
+grayLogInd(~focalLogInd & ~ contrastLogInd) == false;
+%
+figure; 
+scatter3(score(grayLogInd,1),score(grayLogInd,2),score(grayLogInd,3),7,[0.7,0.7,0.7],'filled')
+hold on
+scatter3(score(focalLogInd,1),score(focalLogInd,2),score(focalLogInd,3),7,'m','LineWidth',1)
+scatter3(score(contrastLogInd,1),score(contrastLogInd,2),score(contrastLogInd,3),7,'b','LineWidth',1)
+%
+xlabel(['PC1 (' num2str(round(explained(1))) ')%'])
+ylabel(['PC2 (' num2str(round(explained(2))) ')%'])
+zlabel(['PC3 (' num2str(round(explained(3))) ')%'])
+set(gca,'fontsize',15)
+title('bleach in M9 incident')
+legend({'all other data','bleach in M9 for CB4856','no bleach in M9 for CB4856'})
+
+% COPAS incident (p.154): COPAS pressure problems filling the last 2-3 rows
+% on 20201215 imaging day run 2
+rowLogInd = contains(featureTable.well_name,'F') | contains(featureTable.well_name,'G') | contains(featureTable.well_name,'H');  
+focalLogInd = strcmp(featureTable.date_yyyymmdd,'20201215') & featureTable.imaging_run == 2 & rowLogInd;
+contrastLogInd = strcmp(featureTable.date_yyyymmdd,'20201215') & featureTable.imaging_run == 2 & ~rowLogInd;
+grayLogInd = true(size(focalLogInd));
+grayLogInd(~focalLogInd & ~ contrastLogInd) == false;
+%
+figure; 
+scatter3(score(grayLogInd,1),score(grayLogInd,2),score(grayLogInd,3),7,[0.7,0.7,0.7],'filled')
+hold on
+scatter3(score(focalLogInd,1),score(focalLogInd,2),score(focalLogInd,3),7,'m','LineWidth',1)
+scatter3(score(contrastLogInd,1),score(contrastLogInd,2),score(contrastLogInd,3),7,'b','LineWidth',1)
+%
+xlabel(['PC1 (' num2str(round(explained(1))) ')%'])
+ylabel(['PC2 (' num2str(round(explained(2))) ')%'])
+zlabel(['PC3 (' num2str(round(explained(3))) ')%'])
+set(gca,'fontsize',15)
+title('COPAS pressure incident')
+legend({'all other data','COPAS low pressure','COPAS normal pressure'})
+
+%% contamination incident (p.153): run 1 plate for VX34 has fungal and
+% bacterial contamination on 20201215 imaging day
+focalLogInd = strcmp(featureTable.date_yyyymmdd,'20201215') & strcmp(featureTable.strain_name,'VX34') & featureTable.imaging_run == 1;
+contrastLogInd = strcmp(featureTable.strain_name,'VX34') & ~focalLogInd;
+grayLogInd = true(size(focalLogInd));
+grayLogInd(~focalLogInd & ~ contrastLogInd) == false;
+%
+figure; 
+scatter3(score(grayLogInd,1),score(grayLogInd,2),score(grayLogInd,3),7,[0.7,0.7,0.7],'filled')
+hold on
+scatter3(score(focalLogInd,1),score(focalLogInd,2),score(focalLogInd,3),7,'m','LineWidth',1)
+scatter3(score(contrastLogInd,1),score(contrastLogInd,2),score(contrastLogInd,3),7,'b','LineWidth',1)
+%
+xlabel(['PC1 (' num2str(round(explained(1))) ')%'])
+ylabel(['PC2 (' num2str(round(explained(2))) ')%'])
+zlabel(['PC3 (' num2str(round(explained(3))) ')%'])
+set(gca,'fontsize',15)
+title('VX34 contamination incident')
+legend({'all other data','contamination','no contamination'})
+
 
 %% See what's inside the first PC
 % [feat,featInd] = sort(pc(:,1)); % PC1 

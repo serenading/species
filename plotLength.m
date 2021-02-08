@@ -1,13 +1,15 @@
 close all
 clear
 
+%% Script plots worm length time series data (useful for detectionn of defecation events every 50-60 seconds)
+% Author: @serenading. Feb 2021.
 
 extractStamp = '20201218_184325'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
-strain = 'N2';
-n_subsample = 10;
+strain = 'JU1373';
+n_subsample = 30;
 feature = 'length';
 frameRate = 25;
-minTrajDuration = 60; % mininum trajectory in seconds
+minTrajDuration = 150; % mininum trajectory in seconds
 smoothWindow = 1; % smooth feature over the window, in seconds 
 
 %% Load feature table
@@ -24,7 +26,6 @@ if ~isnan(n_subsample)
 else
     n_subsample = numel(fileInd);
 end
-    
 
 %% Load time series data
 
@@ -83,8 +84,7 @@ for fileCtr = 1:n_subsample
             title([featureTable.filename{fileIdx} '_' well],'Interpreter','none')
         end  
     end
-   
 end
 
 %% Display worm count
-disp([num2str(wormsChecked) ' worm trajectories checked in ' num2str(fileCtr) ' wells. Out of these, ' num2str(wormsPlotted) ' worms met the min traj criteria and are plotted.'])
+disp([num2str(wormsChecked) ' worm trajectories checked in ' num2str(fileCtr) ' wells. Out of these, ' num2str(wormsPlotted) ' trajectories met the min traj criteria and are plotted.'])
