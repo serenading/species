@@ -59,6 +59,7 @@ for strainCtr = 1:numel(strains)
     
     % Preallocate variable for holding feature values
     featVals.(strain) = NaN(size(trimmedFileInd.(strain),1),numel(feats),n_windows);
+    imagingDates.(strain) = NaN(size(trimmedFileInd.(strain),1),n_windows);
 end
     
 %% Go through each time window for feature extraction
@@ -77,6 +78,7 @@ for windowCtr = 1:n_windows
     for strainCtr = 1:numel(strains)
         strain = strains{strainCtr};
         featVals.(strain)(:,:,windowCtr) = featureTable{trimmedFileInd.(strain)(:,windowCtr),feats};
+        imagingDates.(strain)(:,windowCtr) = featureTable.date_yyyymmdd(trimmedFileInd.(strain)(:,windowCtr));
     end
 end
 
@@ -87,13 +89,14 @@ for strainCtr = 1:numel(strains)
     disp(['Generating plot for ' strain  ' ...'])
 
     %% Remove experiments with NaN feature values in any window
-    [featVals.(strain),~,~] = dropNaNVals(featVals.(strain));
+    [featVals.(strain),rowLogInd,~] = dropNaNVals(featVals.(strain));
+    imagingDates.(strain) = imagingDates.(strain)(rowLogInd,:);
     
      %% Plot features
      
     % Get species name for strain using the currently loaded featureTable
     species_names = getSpeciesnames(featureTable);
-    species_name = species_names(trimmedFileInd.(strain)(1,windowCtr));
+    species_name = species_names{trimmedFileInd.(strain)(1,windowCtr)};
     
     % Find subplot location
     if strcmp(species_name,'elegans')
@@ -103,8 +106,7 @@ for strainCtr = 1:numel(strains)
     elseif strcmp(species_name,'tropicalis')
         subplotRow = 3;
     else
-        subplotRow = NaN;
-        warning(['Invalid species name: ' speciesname])
+        warning(['Invalid species name: ' species_name])
     end
     if isscalar(subplotRow)
         % set subplot location

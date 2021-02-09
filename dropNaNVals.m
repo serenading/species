@@ -3,14 +3,14 @@
 % of the sample windows (i.e. due to worms having crawled off leading to no
 % extracted Tierpsy features).
 
-function [featVals,n_filesDropped,featValsCopy] = dropNaNVals(featVals)
+function [featVals,rowLogInd,featValsCopy] = dropNaNVals(featVals)
 
 %% INPUT:
 % featVals: n_sample x n_feature x n_windows array holding feature values
 
 %% OUTPUTS:
 % featVals: trimmed feature values array with incomplete experiments removed.
-% n_filesDropped: scalar showing how many experiments are dropped.
+% rowLogInd:logical index for rows to keep.
 % featValsCopy: a copy of the feature values matrix prior to processing.
 
 %% FUNCTION:

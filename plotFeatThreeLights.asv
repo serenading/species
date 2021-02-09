@@ -1,7 +1,5 @@
 %% Script plots selected features across the three light condition videos.
-% Script creates a 3x3 plot encompassing each strain in a subplot.
-% It also optionally creates swarm plots for individual features to show
-% day to day variation in feature values. 
+% Script creates a 3x3 plot encompassing each strain in a subplot. 
 % author: @serenading. Jan 2021.
 
 clear
@@ -12,13 +10,12 @@ addpath('../AggScreening/auxiliary/')
 
 %% Set parameters
 extractStamp = '20201218_184325'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
-featSetName = 'motion_mode_fraction';
+featSetName = 'midbody_speed';
 strains = {'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'}; % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373';
 windows = [1,2,3]; % 1 for prestim, 2 for bluelight, 3 for poststim
 lightInterval = [0,5*60; 5*60,11*60; 11*60,16*60]; % 5 min prestim, 6 min bluelight, 5 min poststim
 n_subsample = NaN; % number of replicates per strain to sample. Set to NaN to use all files
 resultsDir = '/Users/sding/OneDrive - Imperial College London/species/Results';
-makeSwarmPlot = true;
 
 %% Get feature extraction windows
 midpointAllwindows = sum(lightInterval,2)/2;
@@ -40,12 +37,10 @@ feats = features.(featSetName);
 
 %% Initialise figure
 featValFig = figure; hold on % this will be a 3xn plot, with row 1 being elegans, 2 being briggsae, 3 being tropicalis.
-if makeSwarmPlot
-    featSwarmFig1 = figure; hold on
-    featSwarmFig2 = figure; hold on
-    featSwarmFig3 = figure; hold on
-    featSwarmFig4 = figure; hold on
-end
+featSwarmFig1 = figure; hold on
+featSwarmFig2 = figure; hold on
+featSwarmFig3 = figure; hold on
+featSwarmFig4 = figure; hold on
 colors = {'m','c','k','r'};
 subplotPos = [1;4;7]; % initialise position for subplot figures. each row is a different species
 subplotActualPos = [];
@@ -85,7 +80,8 @@ for strainCtr = 1:numel(strains)
     [featVals,rowLogInd,~] = dropNaNVals(featVals);
     imagingDates = imagingDates(rowLogInd,:);
     
-    %% Get species name for strain
+    %% Plot features
+    % Get species name for strain
     species_name = species_names{trimmedFileInd(1,windowCtr)};
     if strcmp(species_name,'elegans')
         subplotRow = 1;
@@ -97,7 +93,7 @@ for strainCtr = 1:numel(strains)
         error(['Invalid species name: ' species_name])
     end
     
-    %% Plot featValFigure
+    %% Plot featValFigure 
     set(0,'CurrentFigure',featValFig)
     
     % Set subplot location
@@ -110,46 +106,45 @@ for strainCtr = 1:numel(strains)
         shadedErrorBar(midpointAllwindows,vals,{@nanmean,@(x) nanstd(x)/sqrt(numel(x))},...
             'lineprops',{[colors{featCtr} '-o'],'markerfacecolor',colors{featCtr}},'transparent',1); hold on
     end
-    
+
     % Format
     title([strain newline 'n = ' num2str(size(featVals,1))])
     xlim([min(lightInterval(:)),max(lightInterval(:))])
     xlabel('time (s)')
     
     %% Plot swarmchart figure
-    if makeSwarmPlot
-        n_files = size(featVals,1);
+    
+    n_files = size(featVals,1);
+    
+    % Go through each feature to plot separately
+    for featCtr = 1:numel(feats)
+        feat = feats{featCtr};
         
-        % Go through each feature to plot separately
-        for featCtr = 1:numel(feats)
-            feat = feats{featCtr};
-            
-            % Set figure for this feature
-            figname = ['featSwarmFig',num2str(featCtr)];
-            set(0,'CurrentFigure',eval(figname))
-            
-            % Set subplot location
-            subplot(3,3,subplotPos(subplotRow)); hold on
-            
-            % Plot selected feature and color by date
-            tick = [];
-            for windowCtr = 1:numel(allFileIndWindows)
-                dateLogInd = imagingDates(:,windowCtr) ~= 20201202;
-                x = windowCtr * ones(n_files,1);
-                y = squeeze(featVals(:,featCtr,windowCtr));
-                c = imagingDates(:,windowCtr);
-%                 x = x(dateLogInd);
-%                 y = y(dateLogInd);
-%                 c = c(dateLogInd);
-                swarmchart(x,y,10,c,'filled');
-                tick = [tick, windowCtr];
-            end
-            
-            % Format
-            title([strain ', ' feat],'Interpreter','none')
-            xticks(tick);
-            xticklabels(allFileIndWindows)
+        % Set figure
+        figname = ['featSwarmFig',num2str(featCtr)];
+        set(0,'CurrentFigure',eval(figname))
+        
+        % Set subplot location
+        subplot(3,3,subplotPos(subplotRow)); hold on
+        
+        % Plot selected feature and color by date
+        tick = [];
+        for windowCtr = 1:numel(allFileIndWindows)
+            dateLogInd = imagingDates(:,windowCtr) ~= 20201202;
+            x = windowCtr * ones(n_files,1);
+            y = squeeze(featVals(:,featCtr,windowCtr));
+            c = imagingDates(:,windowCtr);
+            %         x = x(dateLogInd);
+            %         y = y(dateLogInd);
+            %         c = c(dateLogInd);
+            swarmchart(x,y,20,c,'filled');
+            tick = [tick, windowCtr];
         end
+        
+        % Format
+        title([strain ', ' feat],'Interpreter','none')
+        xticks(tick);
+        xticklabels(allFileIndWindows)
     end
     
     %% Keep track of subplot locations
@@ -160,17 +155,15 @@ for strainCtr = 1:numel(strains)
 end
 
 %% Format featValFigure
-% link axis for all subplots in featValFig
+% link axis for all subplots in the featValFig
 allAxes = findall(featValFig,'type','axes');
 linkaxes(allAxes,'xy')
-set(0,'CurrentFigure',featValFig)
 % add light interval annotations to each subplot
 x = horzcat(lightInterval,fliplr(lightInterval))';
 yL = get(allAxes,'YLim');
 yL = yL{1};
 y = [yL(1),yL(1),yL(2),yL(2)]';
 y = horzcat(y,y,y);
-set(0,'CurrentFigure',featValFig)
 for subplotCtr = 1:numel(subplotActualPos)
     subplot(3,3,subplotActualPos(subplotCtr))
     patch(x,y,[0 0 0],'EdgeColor','k','FaceAlpha',0)
@@ -178,9 +171,8 @@ for subplotCtr = 1:numel(subplotActualPos)
     text(midpointAllwindows(2), yL(2)*0.95, 'bluelight','HorizontalAlignment','center')
     text(midpointAllwindows(3), yL(2)*0.95, 'poststim','HorizontalAlignment','center')
 end
-set(0,'CurrentFigure',featValFig)
 % add legend
 subplot(3,3,1)
 legend(horzcat(feats, {'light condition'}) ,'Interpreter','none')
 % save figure
-% savefig(featValFig,[resultsDir '/threelight/' featSetName '_allstrains_' extractStamp '.fig'])
+% savefig([resultsDir '/threelight/' featSetName '_allstrains_' extractStamp '.fig'])
