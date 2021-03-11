@@ -54,5 +54,23 @@ features.(featSetName) = {'width_midbody_90th','width_midbody_50th','width_head_
 featSetName = 'width_norm';
 features.(featSetName) = {'width_midbody_norm_90th','width_midbody_norm_50th'};
 
+featSetName = 'ALS_RB929';
+features.(featSetName) = {'motion_mode_forward_fraction','path_coverage_head'};
+
+featSetName = 'ALS_RB2260';
+features.(featSetName) = {'motion_mode_forward_fraction','path_coverage_head','ang_vel_abs_IQR','ang_vel_head_base_abs_10th','ang_vel_head_base_abs_50th'};
+
+featSetName = 'ALS_motion_mode';
+features.(featSetName) = {'motion_mode_forward_fraction','motion_mode_paused_fraction','motion_mode_forward_frequency','motion_mode_paused_fraction'};
+
+featSetName = 'ALS_speed';
+features.(featSetName) = {'speed_w_forward_90th','speed_w_forward_IQR','speed_10th'};
+
+featSetName = 'ALS_path';
+features.(featSetName) = {'path_transit_time_body_95th','path_coverage_head'};
+
+featSetName = 'ALS_angular_velocity';
+features.(featSetName) = {'ang_vel_head_base_abs_50th','ang_vel_head_base_abs_10th','ang_vel_abs_IQR'};
+
 % save
 save('featureSet/features.mat','features');

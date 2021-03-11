@@ -10,7 +10,7 @@ addpath('../AggScreening/auxiliary/')
 %% Set parameters
 
 extractStamp = '20210119_073010'; % '20210119_073010' feature summaries have multiple bluelight windows.
-featSetName = 'width';
+featSetName = 'motion_mode_fraction';
 strains = {'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'}; % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373';
 n_subsample = NaN; % number of replicates per strain to sample. Set to NaN to use all files
 bluelightInterval = [60,70; 160,170; 260,270];
@@ -154,4 +154,4 @@ subplot(3,3,1); hold on
 legend(horzcat(feats,{'bluelight pulse'}) ,'Interpreter','none') 
 
 % save figure
-savefig([resultsDir '/bluelight/' featSetName '_allstrains_' extractStamp '.fig'])
+%savefig([resultsDir '/bluelight/' featSetName '_allstrains_' extractStamp '.fig'])

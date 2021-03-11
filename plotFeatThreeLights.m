@@ -12,7 +12,7 @@ addpath('../AggScreening/auxiliary/')
 
 %% Set parameters
 extractStamp = '20201218_184325'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
-featSetName = 'motion_mode_fraction';
+featSetName = 'midbody_speed';
 strains = {'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373'}; % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373';
 windows = [1,2,3]; % 1 for prestim, 2 for bluelight, 3 for poststim
 lightInterval = [0,5*60; 5*60,11*60; 11*60,16*60]; % 5 min prestim, 6 min bluelight, 5 min poststim
@@ -184,3 +184,21 @@ subplot(3,3,1)
 legend(horzcat(feats, {'light condition'}) ,'Interpreter','none')
 % save figure
 % savefig(featValFig,[resultsDir '/threelight/' featSetName '_allstrains_' extractStamp '.fig'])
+
+% %% Format swarmchart figure
+% if makeSwarmPlot
+%     % link axis for all subplots
+%     allAxes = findall(featSwarmFig1,'type','axes');
+%     linkaxes(allAxes,'xy')
+%     % link axis for all subplots
+%     allAxes = findall(featSwarmFig2,'type','axes');
+%     linkaxes(allAxes,'xy')
+%     % link axis for all subplots
+%     allAxes = findall(featSwarmFig3,'type','axes');
+%     linkaxes(allAxes,'xy')
+%     % link axis for all subplots
+%     if numel(feats)>3
+%         allAxes = findall(featSwarmFig4,'type','axes');
+%         linkaxes(allAxes,'xy')
+%     end
+% end

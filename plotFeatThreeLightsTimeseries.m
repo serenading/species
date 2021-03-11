@@ -8,17 +8,14 @@ close all
 addpath('../AggScreening/')
 addpath('../AggScreening/auxiliary/')
 
-% TODO: make functions for calculating reversal frequencies etc. from
-% extracted time series data
-
 %% Set parameters
 extractStamp = '20201218_184325'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
-feats = {'speed_midbody','angular_velocity_head_tip','motion_mode'};%_forward_fraction','motion_mode_paused_fraction','motion_mode_backward_fraction'}; % {'angular_velocity_head_tip','angular_velocity_head_base','speed_midbody'}; % cell array containing feature names as strings.
+feats = {'speed_midbody','angular_velocity_head_tip'};%_forward_fraction','motion_mode_paused_fraction','motion_mode_backward_fraction'}; % {'angular_velocity_head_tip','angular_velocity_head_base','speed_midbody'}; % cell array containing feature names as strings.
 lightConditions = {'prestim','bluelight','poststim'}; % {'prestim','bluelight','poststim'}
 strains = {'N2'}; % 'N2','CB4856','MY23','QX1410','VX34','NIC58','JU1373';
-n_subsample = 20; % number of replicates per strain to sample.
+n_subsample = 3; % number of replicates per strain to sample.
 frameRate = 25;
-smoothWindow = 30; % window to smooth feature over, in seconds
+smoothWindow = NaN; % window to smooth feature over, in seconds. Set NaN if no smoothing is desired.
 resultsDir = '/Volumes/Ashur DT2/species/Results/';
 n_frames = 6*60*frameRate + 10; % maximum duration per video is 6 min. Plus 10 extra frames because the recordings don't always finish at the precise end frame
 
@@ -129,7 +126,9 @@ for strainCtr = 1:numel(strains)
             x = 1:size(y,2);
             
             % Smooth y values over a time window
-            y = smoothdata(y,'movmedian',smoothWindow*frameRate);
+            if ~isnan(smoothWindow)
+                y = smoothdata(y,'movmedian',smoothWindow*frameRate);
+            end
             
             % Plot
             shadedErrorBar(x,y,{@nanmean,@(x) nanstd(x)/sqrt(numel(x))},'lineProps','-k','transparent',1); hold on

@@ -9,15 +9,13 @@ close all
 addpath('../AggScreening')
 
 %% Set analysis parameters
-
-% Specify which extracted features tables to use
-windowSize = 'small'; % 'big' to use the 5 minute windows, 'small' to use the 10s windows
+windowSize = 'big'; % 'big' to use the 5 minute windows, 'small' to use the 10s windows
 if strcmp(windowSize,'big')
     extractStamp = '20201218_184325'; % 20201218_184325 for standard feature extraction, 20210112_105808 for filtered data
     lightConditions = {'prestim','bluelight'}; % 'prestim','bluelight','poststim'
     classVar = {'strain_name','light_condition','date_yyyymmdd','date_plates_poured_yyyymmdd','imaging_run','well_name'}; % variable names to retain for plotting
 elseif strcmp(windowSize,'small')
-    window = 1; % 0 for first prelight window (10 s), 1 for first bluelight window (10 s). One window at a time
+    window = 0; % 0 for first prelight window (10 s), 1 for first bluelight window (10 s). One window at a time
     extractStamp = '20210119_073010'; % '20210119_073010' feature summaries have multiple bluelight windows.
     classVar = {'strain_name'}; % variable names to retain for plotting
 end
@@ -32,8 +30,7 @@ n_skeletons_range = [50 22500]; % n_skeleton range to use for retaining the well
 removeOutlier = true; % option to remove outlier coefficients from each PC
 n_std2include = 3; % define outliers as being outside mean+/- n standard deviations. Use 3 for conservative outlier removal retaining 99.9% data. Use 10 to remove only extreme outliers.
 
-% Specify optional plots
-plotIndividualStrains = true; % make separate plots with each strain (colored) with all other strains grayed out
+plotIndividualStrains = false; % make separate plots with each strain (colored) with all other strains grayed out
 plotQC = false; % optional quality check plots
 
 %% Load featureTable
@@ -189,35 +186,33 @@ legend(strains)
 title(['PCA plot with ' num2str(n_strains) ' strains and ' num2str(n_feats) ' features'])
 set(gca,'fontsize',15)
 
-if plotIndividualStrains
-    %% Get logical index for each strain
-    strainLogInd = false(numel(featureTable.strain_name),numel(strains));
-    for strainCtr = 1:numel(strains)
-        strain = strains{strainCtr};
-        strainLogInd(:,strainCtr) = strcmp(featureTable.strain_name,strain);
-    end
-    
-    % 3D plot of the first three PCs showing one strain at a time
-    
-    for strainCtr = 1:numel(strains)
-        strain = strains{strainCtr};
-        figure;
-        % plot the strain of interest in red
-        scatter3(score(strainLogInd(:,strainCtr),1),score(strainLogInd(:,strainCtr),2),score(strainLogInd(:,strainCtr),3),...
-            7,'red','filled')
-        hold on
-        % plot the rest of the strains in gray
-        scatter3(score(~strainLogInd(:,strainCtr),1),score(~strainLogInd(:,strainCtr),2),score(~strainLogInd(:,strainCtr),3),...
-            7,[0.7,0.7,0.7],'filled')
-        xlabel(['PC1 (' num2str(round(explained(1))) ')%'])
-        ylabel(['PC2 (' num2str(round(explained(2))) ')%'])
-        zlabel(['PC3 (' num2str(round(explained(3))) ')%'])
-        
-        legend(strain)
-        title(['PCA plot with ' num2str(n_feats) ' features'])
-        set(gca,'fontsize',15)
-    end
+%% Get logical index for each strain
+strainLogInd = false(numel(featureTable.strain_name),numel(strains));
+for strainCtr = 1:numel(strains)
+    strain = strains{strainCtr};
+    strainLogInd(:,strainCtr) = strcmp(featureTable.strain_name,strain);
 end
+
+% %% 3D plot of the first three PCs showing one strain at a time
+% %
+% for strainCtr = 1:numel(strains)
+%     strain = strains{strainCtr};
+%     figure;
+%     % plot the strain of interest in red
+%     scatter3(score(strainLogInd(:,strainCtr),1),score(strainLogInd(:,strainCtr),2),score(strainLogInd(:,strainCtr),3),...
+%         7,'red','filled')
+%     hold on
+%     % plot the rest of the strains in gray
+%     scatter3(score(~strainLogInd(:,strainCtr),1),score(~strainLogInd(:,strainCtr),2),score(~strainLogInd(:,strainCtr),3),...
+%         7,[0.7,0.7,0.7],'filled')
+%     xlabel(['PC1 (' num2str(round(explained(1))) ')%'])
+%     ylabel(['PC2 (' num2str(round(explained(2))) ')%'])
+%     zlabel(['PC3 (' num2str(round(explained(3))) ')%'])
+%     %
+%     legend(strain)
+%     title(['PCA plot with ' num2str(n_feats) ' features'])
+%     set(gca,'fontsize',15)
+% end
 
 if strcmp(windowSize,'big')
     
@@ -334,71 +329,70 @@ if strcmp(windowSize,'big')
     %
     set(gca,'fontsize',15)
     
-    if plotQC
-        
-        %% Get logical index for questionable data for visualisation
-        
-        % bleach incident (p.147): when washing CB4856 for bleaching for 20201202
-        % imaging day (rep 2), M9 aparently smelled like bleach
-        focalLogInd = strcmp(featureTable.date_yyyymmdd,'20201202') & strcmp(featureTable.strain_name,'CB4856');
-        contrastLogInd = ~strcmp(featureTable.date_yyyymmdd,'20201202') & strcmp(featureTable.strain_name,'CB4856');
-        grayLogInd = true(size(focalLogInd));
-        grayLogInd(~focalLogInd & ~ contrastLogInd) == false;
-        %
-        figure;
-        scatter3(score(grayLogInd,1),score(grayLogInd,2),score(grayLogInd,3),7,[0.7,0.7,0.7],'filled')
-        hold on
-        scatter3(score(focalLogInd,1),score(focalLogInd,2),score(focalLogInd,3),7,'m','LineWidth',1)
-        scatter3(score(contrastLogInd,1),score(contrastLogInd,2),score(contrastLogInd,3),7,'b','LineWidth',1)
-        %
-        xlabel(['PC1 (' num2str(round(explained(1))) ')%'])
-        ylabel(['PC2 (' num2str(round(explained(2))) ')%'])
-        zlabel(['PC3 (' num2str(round(explained(3))) ')%'])
-        set(gca,'fontsize',15)
-        title('bleach in M9 incident')
-        legend({'all other data','bleach in M9 for CB4856','no bleach in M9 for CB4856'})
-        
-        % COPAS incident (p.154): COPAS pressure problems filling the last 2-3 rows
-        % on 20201215 imaging day run 2
-        rowLogInd = contains(featureTable.well_name,'F') | contains(featureTable.well_name,'G') | contains(featureTable.well_name,'H');
-        focalLogInd = strcmp(featureTable.date_yyyymmdd,'20201215') & featureTable.imaging_run == 2 & rowLogInd;
-        contrastLogInd = strcmp(featureTable.date_yyyymmdd,'20201215') & featureTable.imaging_run == 2 & ~rowLogInd;
-        grayLogInd = true(size(focalLogInd));
-        grayLogInd(~focalLogInd & ~ contrastLogInd) == false;
-        %
-        figure;
-        scatter3(score(grayLogInd,1),score(grayLogInd,2),score(grayLogInd,3),7,[0.7,0.7,0.7],'filled')
-        hold on
-        scatter3(score(focalLogInd,1),score(focalLogInd,2),score(focalLogInd,3),7,'m','LineWidth',1)
-        scatter3(score(contrastLogInd,1),score(contrastLogInd,2),score(contrastLogInd,3),7,'b','LineWidth',1)
-        %
-        xlabel(['PC1 (' num2str(round(explained(1))) ')%'])
-        ylabel(['PC2 (' num2str(round(explained(2))) ')%'])
-        zlabel(['PC3 (' num2str(round(explained(3))) ')%'])
-        set(gca,'fontsize',15)
-        title('COPAS pressure incident')
-        legend({'all other data','COPAS low pressure','COPAS normal pressure'})
-        
-        % contamination incident (p.153): run 1 plate for VX34 has fungal and bacterial contamination on 20201215 imaging day
-        focalLogInd = strcmp(featureTable.date_yyyymmdd,'20201215') & strcmp(featureTable.strain_name,'VX34') & featureTable.imaging_run == 1;
-        contrastLogInd = strcmp(featureTable.strain_name,'VX34') & ~focalLogInd;
-        grayLogInd = true(size(focalLogInd));
-        grayLogInd(~focalLogInd & ~ contrastLogInd) == false;
-        %
-        figure;
-        scatter3(score(grayLogInd,1),score(grayLogInd,2),score(grayLogInd,3),7,[0.7,0.7,0.7],'filled')
-        hold on
-        scatter3(score(focalLogInd,1),score(focalLogInd,2),score(focalLogInd,3),7,'m','LineWidth',1)
-        scatter3(score(contrastLogInd,1),score(contrastLogInd,2),score(contrastLogInd,3),7,'b','LineWidth',1)
-        %
-        xlabel(['PC1 (' num2str(round(explained(1))) ')%'])
-        ylabel(['PC2 (' num2str(round(explained(2))) ')%'])
-        zlabel(['PC3 (' num2str(round(explained(3))) ')%'])
-        set(gca,'fontsize',15)
-        title('VX34 contamination incident')
-        legend({'all other data','contamination','no contamination'})
-    end
+    %% Get logical index for questionable data for visualisation
+    
+    % bleach incident (p.147): when washing CB4856 for bleaching for 20201202
+    % imaging day (rep 2), M9 aparently smelled like bleach
+    focalLogInd = strcmp(featureTable.date_yyyymmdd,'20201202') & strcmp(featureTable.strain_name,'CB4856');
+    contrastLogInd = ~strcmp(featureTable.date_yyyymmdd,'20201202') & strcmp(featureTable.strain_name,'CB4856');
+    grayLogInd = true(size(focalLogInd));
+    grayLogInd(~focalLogInd & ~ contrastLogInd) == false;
+    %
+    figure;
+    scatter3(score(grayLogInd,1),score(grayLogInd,2),score(grayLogInd,3),7,[0.7,0.7,0.7],'filled')
+    hold on
+    scatter3(score(focalLogInd,1),score(focalLogInd,2),score(focalLogInd,3),7,'m','LineWidth',1)
+    scatter3(score(contrastLogInd,1),score(contrastLogInd,2),score(contrastLogInd,3),7,'b','LineWidth',1)
+    %
+    xlabel(['PC1 (' num2str(round(explained(1))) ')%'])
+    ylabel(['PC2 (' num2str(round(explained(2))) ')%'])
+    zlabel(['PC3 (' num2str(round(explained(3))) ')%'])
+    set(gca,'fontsize',15)
+    title('bleach in M9 incident')
+    legend({'all other data','bleach in M9 for CB4856','no bleach in M9 for CB4856'})
+    
+    % COPAS incident (p.154): COPAS pressure problems filling the last 2-3 rows
+    % on 20201215 imaging day run 2
+    rowLogInd = contains(featureTable.well_name,'F') | contains(featureTable.well_name,'G') | contains(featureTable.well_name,'H');
+    focalLogInd = strcmp(featureTable.date_yyyymmdd,'20201215') & featureTable.imaging_run == 2 & rowLogInd;
+    contrastLogInd = strcmp(featureTable.date_yyyymmdd,'20201215') & featureTable.imaging_run == 2 & ~rowLogInd;
+    grayLogInd = true(size(focalLogInd));
+    grayLogInd(~focalLogInd & ~ contrastLogInd) == false;
+    %
+    figure;
+    scatter3(score(grayLogInd,1),score(grayLogInd,2),score(grayLogInd,3),7,[0.7,0.7,0.7],'filled')
+    hold on
+    scatter3(score(focalLogInd,1),score(focalLogInd,2),score(focalLogInd,3),7,'m','LineWidth',1)
+    scatter3(score(contrastLogInd,1),score(contrastLogInd,2),score(contrastLogInd,3),7,'b','LineWidth',1)
+    %
+    xlabel(['PC1 (' num2str(round(explained(1))) ')%'])
+    ylabel(['PC2 (' num2str(round(explained(2))) ')%'])
+    zlabel(['PC3 (' num2str(round(explained(3))) ')%'])
+    set(gca,'fontsize',15)
+    title('COPAS pressure incident')
+    legend({'all other data','COPAS low pressure','COPAS normal pressure'})
+    
+    %% contamination incident (p.153): run 1 plate for VX34 has fungal and
+    % bacterial contamination on 20201215 imaging day
+    focalLogInd = strcmp(featureTable.date_yyyymmdd,'20201215') & strcmp(featureTable.strain_name,'VX34') & featureTable.imaging_run == 1;
+    contrastLogInd = strcmp(featureTable.strain_name,'VX34') & ~focalLogInd;
+    grayLogInd = true(size(focalLogInd));
+    grayLogInd(~focalLogInd & ~ contrastLogInd) == false;
+    %
+    figure;
+    scatter3(score(grayLogInd,1),score(grayLogInd,2),score(grayLogInd,3),7,[0.7,0.7,0.7],'filled')
+    hold on
+    scatter3(score(focalLogInd,1),score(focalLogInd,2),score(focalLogInd,3),7,'m','LineWidth',1)
+    scatter3(score(contrastLogInd,1),score(contrastLogInd,2),score(contrastLogInd,3),7,'b','LineWidth',1)
+    %
+    xlabel(['PC1 (' num2str(round(explained(1))) ')%'])
+    ylabel(['PC2 (' num2str(round(explained(2))) ')%'])
+    zlabel(['PC3 (' num2str(round(explained(3))) ')%'])
+    set(gca,'fontsize',15)
+    title('VX34 contamination incident')
+    legend({'all other data','contamination','no contamination'})
 end
+
 
 %% See what's inside the first PC
 % [feat,featInd] = sort(pc(:,1)); % PC1

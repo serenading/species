@@ -12,7 +12,7 @@
 `classifySpecies`: Script uses supervised machine learning algorithms to train classifiers for a specified variable based on extracted Tierpsy features. It also has the option to apply sequantial feature selection to identify top features to use for classification.    
 `plotTraj`: Script visualises full frame trajectories from an entire camera view (4x4 wells).  
 `plotFeatBluelight`: Script plots selected features across the blue light condition videos.  
-`plotFeatThreeLights`: Script plots selected features across the three light condition videos.
+`plotFeatThreeLights`: Script plots selected features across the three light condition videos. It also optionally creates swarm plots for individual features to show day to day variation in feature values.
 `plotFeatThreeLightsTimeseries`: Script reads featuresN.hdf5 files and plots selected timeseries features across the three light conditions (as opposed to using extracted features values in each light window as in *plotFeatThreeLights*).  
 `analyseBluelightSensitivity`: Script analyses bluelight sensitivity by looking at significant feature changes between prestim and bluelight videos.
 
